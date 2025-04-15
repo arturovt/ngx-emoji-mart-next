@@ -31,28 +31,15 @@ describe('EmojiSearch', () => {
     },
   ));
 
-  it('can include/exclude categories', inject(
-    [EmojiSearch],
-    (es: EmojiSearch) => {
-      expect(es.search('flag', undefined, undefined, ['people'])).toEqual([]);
-    },
-  ));
+  it('can include/exclude categories', inject([EmojiSearch], (es: EmojiSearch) => {
+    expect(es.search('flag', undefined, undefined, ['people'])).toEqual([]);
+  }));
 
-  it('can search for thinking_face', inject(
-    [EmojiSearch],
-    (es: EmojiSearch) => {
-      expect(es.search('thinking_fac')!.map((x: any) => x.id)).toEqual([
-        'thinking_face',
-      ]);
-    },
-  ));
+  it('can search for thinking_face', inject([EmojiSearch], (es: EmojiSearch) => {
+    expect(es.search('thinking_fac')!.map((x: any) => x.id)).toEqual(['thinking_face']);
+  }));
 
-  it('can search for woman-facepalming', inject(
-    [EmojiSearch],
-    (es: EmojiSearch) => {
-      expect(es.search('woman-facep')!.map(x => x.id)).toEqual([
-        'woman-facepalming',
-      ]);
-    },
-  ));
+  it('can search for woman-facepalming', inject([EmojiSearch], (es: EmojiSearch) => {
+    expect(es.search('woman-facep')!.map(x => x.id)).toEqual(['woman-facepalming']);
+  }));
 });

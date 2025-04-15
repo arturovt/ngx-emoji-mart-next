@@ -1,0 +1,105 @@
+<section
+  #container
+  class="emoji-mart-category"
+  [attr.aria-label]="i18n.categories[id]"
+  [class.emoji-mart-no-results]="noEmojiToDisplay"
+  [style]="containerStyles()"
+>
+  <div class="emoji-mart-category-label" [style]="labelStyles()" [attr.data-name]="name">
+    <!-- already labeled by the section aria-label -->
+    <span #label aria-hidden="true">
+      {{ i18n.categories[id] }}
+    </span>
+  </div>
+
+  <div>
+    @if (virtualize) {
+      @if (_filteredEmojis(); as filteredEmojis) {
+        @for (emoji of filteredEmojis; track emoji) {
+          <ngx-emoji
+            [emoji]="emoji"
+            [size]="emojiSize"
+            [skin]="emojiSkin"
+            [isNative]="emojiIsNative"
+            [set]="emojiSet"
+            [sheetSize]="emojiSheetSize"
+            [forceSize]="emojiForceSize"
+            [tooltip]="emojiTooltip"
+            [backgroundImageFn]="emojiBackgroundImageFn"
+            [imageUrlFn]="emojiImageUrlFn"
+            [hideObsolete]="hideObsolete"
+            [useButton]="emojiUseButton"
+            (emojiOver)="emojiOver.emit($event)"
+            (emojiLeave)="emojiLeave.emit($event)"
+            (emojiClick)="emojiClick.emit($event)"
+          />
+        }
+      }
+    } @else {
+      @for (emoji of emojisToDisplay; track emoji) {
+        <ngx-emoji
+          [emoji]="emoji"
+          [size]="emojiSize"
+          [skin]="emojiSkin"
+          [isNative]="emojiIsNative"
+          [set]="emojiSet"
+          [sheetSize]="emojiSheetSize"
+          [forceSize]="emojiForceSize"
+          [tooltip]="emojiTooltip"
+          [backgroundImageFn]="emojiBackgroundImageFn"
+          [imageUrlFn]="emojiImageUrlFn"
+          [hideObsolete]="hideObsolete"
+          [useButton]="emojiUseButton"
+          (emojiOver)="emojiOver.emit($event)"
+          (emojiLeave)="emojiLeave.emit($event)"
+          (emojiClick)="emojiClick.emit($event)"
+        />
+      }
+    }
+  </div>
+
+  @if (noEmojiToDisplay) {
+    <div>
+      <div>
+        <ngx-emoji
+          [emoji]="notFoundEmoji"
+          [size]="38"
+          [skin]="emojiSkin"
+          [isNative]="emojiIsNative"
+          [set]="emojiSet"
+          [sheetSize]="emojiSheetSize"
+          [forceSize]="emojiForceSize"
+          [tooltip]="emojiTooltip"
+          [backgroundImageFn]="emojiBackgroundImageFn"
+          [useButton]="emojiUseButton"
+        />
+      </div>
+
+      <div class="emoji-mart-no-results-label">
+        {{ i18n.notfound }}
+      </div>
+    </div>
+  }
+</section>
+
+<ng-template #normalRenderTemplate>
+  @for (emoji of emojisToDisplay; track emoji) {
+    <ngx-emoji
+      [emoji]="emoji"
+      [size]="emojiSize"
+      [skin]="emojiSkin"
+      [isNative]="emojiIsNative"
+      [set]="emojiSet"
+      [sheetSize]="emojiSheetSize"
+      [forceSize]="emojiForceSize"
+      [tooltip]="emojiTooltip"
+      [backgroundImageFn]="emojiBackgroundImageFn"
+      [imageUrlFn]="emojiImageUrlFn"
+      [hideObsolete]="hideObsolete"
+      [useButton]="emojiUseButton"
+      (emojiOver)="emojiOver.emit($event)"
+      (emojiLeave)="emojiLeave.emit($event)"
+      (emojiClick)="emojiClick.emit($event)"
+    />
+  }
+</ng-template>

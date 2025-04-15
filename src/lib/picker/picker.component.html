@@ -1,7 +1,7 @@
 <section
   class="emoji-mart {{ darkMode ? 'emoji-mart-dark' : '' }}"
   [style.width]="getWidth()"
-  [ngStyle]="style"
+  [style]="style"
 >
   <div class="emoji-mart-bar">
     <emoji-mart-anchors
@@ -17,7 +17,7 @@
     *ngIf="enableSearch"
     [i18n]="i18n"
     (searchResults)="handleSearch($event)"
-    (enterKeyOutsideAngular)="handleEnterKey($event)"
+    (enterKey)="handleEnterKey($event)"
     [include]="include"
     [exclude]="exclude"
     [custom]="custom"
@@ -51,9 +51,9 @@
       [emojiBackgroundImageFn]="backgroundImageFn"
       [emojiImageUrlFn]="imageUrlFn"
       [emojiUseButton]="useButton"
-      (emojiOverOutsideAngular)="handleEmojiOver($event)"
-      (emojiLeaveOutsideAngular)="handleEmojiLeave()"
-      (emojiClickOutsideAngular)="handleEmojiClick($event)"
+      (emojiOver)="handleEmojiOver($event)"
+      (emojiLeave)="handleEmojiLeave()"
+      (emojiClick)="handleEmojiClick($event)"
     ></emoji-category>
   </section>
   <div class="emoji-mart-bar" *ngIf="showPreview">

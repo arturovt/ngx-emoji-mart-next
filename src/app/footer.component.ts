@@ -2,8 +2,8 @@ import { Component, VERSION } from '@angular/core';
 import { GhButtonModule } from '@ctrl/ngx-github-buttons';
 
 @Component({
-  selector: 'app-footer',
-  template: `
+    selector: 'app-footer',
+    template: `
     <footer class="footer mb-4 mt-5">
       <div class="mb-2">
         <gh-button [count]="true" user="scttcper" repo="ngx-emoji-mart"></gh-button>
@@ -16,8 +16,8 @@ import { GhButtonModule } from '@ctrl/ngx-github-buttons';
       <a href="https://github.com/scttcper/ngx-emoji-mart">View source</a>
     </footer>
   `,
-  styles: [
-    `
+    styles: [
+        `
       .footer {
         line-height: 2;
         text-align: center;
@@ -25,9 +25,8 @@ import { GhButtonModule } from '@ctrl/ngx-github-buttons';
         color: #999;
       }
     `,
-  ],
-  standalone: true,
-  imports: [GhButtonModule],
+    ],
+    imports: [GhButtonModule]
 })
 export class FooterComponent {
   version = VERSION.full;

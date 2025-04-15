@@ -28,10 +28,9 @@ const CUSTOM_EMOJIS = [
 ];
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  standalone: true,
-  imports: [CommonModule, PickerComponent, EmojiComponent, FooterComponent],
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    imports: [CommonModule, PickerComponent, EmojiComponent, FooterComponent]
 })
 export class AppComponent {
   themes = ['native', 'apple', 'google', 'twitter', 'facebook'];
