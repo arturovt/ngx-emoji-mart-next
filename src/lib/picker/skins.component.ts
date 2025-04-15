@@ -1,48 +1,53 @@
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  signal,
+} from '@angular/core';
 
 import { Emoji } from '@ctrl/ngx-emoji-mart/ngx-emoji';
 
 @Component({
-    selector: 'emoji-skins',
-    template: `
-    <section class="emoji-mart-skin-swatches" [class.opened]="opened">
-      <span
-        *ngFor="let skinTone of skinTones"
-        class="emoji-mart-skin-swatch"
-        [class.selected]="skinTone === skin"
-      >
-        <span
-          (click)="handleClick(skinTone)"
-          (keyup.enter)="handleClick(skinTone)"
-          (keyup.space)="handleClick(skinTone)"
-          class="emoji-mart-skin emoji-mart-skin-tone-{{ skinTone }}"
-          role="button"
-          [tabIndex]="tabIndex(skinTone)"
-          [attr.aria-hidden]="!isVisible(skinTone)"
-          [attr.aria-pressed]="pressed(skinTone)"
-          [attr.aria-haspopup]="!!isSelected(skinTone)"
-          [attr.aria-expanded]="expanded(skinTone)"
-          [attr.aria-label]="i18n.skintones[skinTone]"
-          [attr.title]="i18n.skintones[skinTone]"
-        ></span>
-      </span>
+  selector: 'emoji-skins',
+  template: `
+    <section class="emoji-mart-skin-swatches" [class.opened]="opened()">
+      @for (skinTone of skinTones; track skinTone) {
+        <span class="emoji-mart-skin-swatch" [class.selected]="skinTone === skin">
+          <span
+            (click)="handleClick(skinTone)"
+            (keyup.enter)="handleClick(skinTone)"
+            (keyup.space)="handleClick(skinTone)"
+            class="emoji-mart-skin emoji-mart-skin-tone-{{ skinTone }}"
+            role="button"
+            [tabIndex]="tabIndex(skinTone)"
+            [attr.aria-hidden]="!isVisible(skinTone)"
+            [attr.aria-pressed]="pressed(skinTone)"
+            [attr.aria-haspopup]="!!isSelected(skinTone)"
+            [attr.aria-expanded]="expanded(skinTone)"
+            [attr.aria-label]="i18n.skintones[skinTone]"
+            [attr.title]="i18n.skintones[skinTone]"
+          ></span>
+        </span>
+      }
     </section>
   `,
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    preserveWhitespaces: false,
-    imports: [CommonModule]
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SkinComponent {
   /** currently selected skin */
   @Input() skin?: Emoji['skin'];
   @Input() i18n: any;
+
   @Output() changeSkin = new EventEmitter<Emoji['skin']>();
-  opened = false;
-  skinTones: Emoji['skin'][] = [1, 2, 3, 4, 5, 6];
+
+  readonly opened = signal(false);
+
+  readonly skinTones: Emoji['skin'][] = [1, 2, 3, 4, 5, 6];
 
   toggleOpen() {
-    this.opened = !this.opened;
+    this.opened.update(opened => !opened);
   }
 
   isSelected(skinTone: Emoji['skin']): boolean {
@@ -50,11 +55,11 @@ export class SkinComponent {
   }
 
   isVisible(skinTone: Emoji['skin']): boolean {
-    return this.opened || this.isSelected(skinTone);
+    return this.opened() || this.isSelected(skinTone);
   }
 
   pressed(skinTone: Emoji['skin']) {
-    return this.opened ? !!this.isSelected(skinTone) : '';
+    return this.opened() ? !!this.isSelected(skinTone) : '';
   }
 
   tabIndex(skinTone: Emoji['skin']) {
@@ -66,11 +71,11 @@ export class SkinComponent {
   }
 
   handleClick(skin: Emoji['skin']) {
-    if (!this.opened) {
-      this.opened = true;
+    if (!this.opened()) {
+      this.opened.set(true);
       return;
     }
-    this.opened = false;
+    this.opened.set(false);
     if (skin !== this.skin) {
       this.changeSkin.emit(skin);
     }

@@ -1,21 +1,17 @@
-import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   ElementRef,
   EventEmitter,
-  Inject,
+  inject,
   Input,
   NgZone,
-  OnDestroy,
   OnInit,
   Output,
-  PLATFORM_ID,
-  QueryList,
-  Renderer2,
-  ViewChild,
-  ViewChildren,
+  viewChild,
+  viewChildren,
 } from '@angular/core';
 
 import {
@@ -66,10 +62,9 @@ const I18N: any = {
   selector: 'emoji-mart',
   templateUrl: './picker.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  preserveWhitespaces: false,
-  imports: [CommonModule, AnchorsComponent, SearchComponent, PreviewComponent, CategoryComponent],
+  imports: [AnchorsComponent, SearchComponent, PreviewComponent, CategoryComponent],
 })
-export class PickerComponent implements OnInit, OnDestroy {
+export class PickerComponent implements OnInit {
   @Input() perLine = 9;
   @Input() totalFrequentLines = 4;
   @Input() i18n: any = {};
@@ -113,10 +108,12 @@ export class PickerComponent implements OnInit, OnDestroy {
   @Output() emojiClick = new EventEmitter<any>();
   @Output() emojiSelect = new EventEmitter<any>();
   @Output() skinChange = new EventEmitter<Emoji['skin']>();
-  @ViewChild('scrollRef', { static: true }) private scrollRef!: ElementRef;
-  @ViewChild(PreviewComponent, { static: false }) previewRef?: PreviewComponent;
-  @ViewChild(SearchComponent, { static: false }) searchRef?: SearchComponent;
-  @ViewChildren(CategoryComponent) categoryRefs!: QueryList<CategoryComponent>;
+
+  readonly scrollRef = viewChild.required<ElementRef<HTMLElement>>('scrollRef');
+  readonly previewRef = viewChild(PreviewComponent);
+  readonly searchRef = viewChild(SearchComponent);
+  readonly categoryRefs = viewChildren(CategoryComponent);
+
   scrollHeight = 0;
   clientHeight = 0;
   clientWidth = 0;
@@ -144,19 +141,26 @@ export class PickerComponent implements OnInit, OnDestroy {
     name: 'Custom',
     emojis: [],
   };
-  private scrollListener!: () => void;
 
   @Input()
   backgroundImageFn: Emoji['backgroundImageFn'] = (set: string, sheetSize: number) =>
     `https://cdn.jsdelivr.net/npm/emoji-datasource-${set}@14.0.0/img/${set}/sheets-256/${sheetSize}.png`;
 
+  private destroyRef = inject(DestroyRef);
+
   constructor(
     private ngZone: NgZone,
-    private renderer: Renderer2,
     private ref: ChangeDetectorRef,
     private frequently: EmojiFrequentlyService,
-    @Inject(PLATFORM_ID) private platformId: string,
-  ) {}
+  ) {
+    this.destroyRef.onDestroy(() => {
+      // This is called here because the component might be destroyed
+      // but there will still be a `requestAnimationFrame` callback in the queue
+      // that calls `detectChanges()` on the `ViewRef`. This will lead to a runtime
+      // exception if the `detectChanges()` is called after the `ViewRef` is destroyed.
+      this.cancelAnimationFrame();
+    });
+  }
 
   ngOnInit() {
     // measure scroll
@@ -166,7 +170,9 @@ export class PickerComponent implements OnInit, OnDestroy {
     this.i18n.categories = { ...I18N.categories, ...this.i18n.categories };
     this.skin =
       JSON.parse(
-        (isPlatformBrowser(this.platformId) && localStorage.getItem(`${this.NAMESPACE}.skin`)) ||
+        (typeof ngServerMode !== 'undefined' &&
+          !ngServerMode &&
+          localStorage.getItem(`${this.NAMESPACE}.skin`)) ||
           'null',
       ) || this.skin;
 
@@ -270,35 +276,28 @@ export class PickerComponent implements OnInit, OnDestroy {
       // component and going down to the children.
       this.ref.detectChanges();
 
-      isPlatformBrowser(this.platformId) &&
+      if (typeof ngServerMode !== 'undefined' && !ngServerMode) {
         this.ngZone.runOutsideAngular(() => {
-          // The `updateCategoriesSize` doesn't change properties that are used
-          // in templates, thus this is run in the context of the root zone to avoid
-          // running change detection.
           requestAnimationFrame(() => {
+            // The `updateCategoriesSize` doesn't change properties that are used
+            // in templates, thus this is run in the context of the root zone to avoid
+            // running change detection.
             this.updateCategoriesSize();
           });
         });
+      }
     });
 
     this.ngZone.runOutsideAngular(() => {
-      // DOM events that are listened by Angular inside the template trigger change detection
-      // and also wrapped into additional functions that call `markForCheck()`. We listen `scroll`
-      // in the context of the root zone since it will not trigger change detection each time
-      // the `scroll` event is dispatched.
-      this.scrollListener = this.renderer.listen(this.scrollRef.nativeElement, 'scroll', () => {
+      const scrollRef = this.scrollRef().nativeElement;
+      const onScroll = () => {
         this.handleScroll();
+      };
+      scrollRef.addEventListener('scroll', onScroll);
+      this.destroyRef.onDestroy(() => {
+        scrollRef.removeEventListener('scroll', onScroll);
       });
     });
-  }
-
-  ngOnDestroy(): void {
-    this.scrollListener?.();
-    // This is called here because the component might be destroyed
-    // but there will still be a `requestAnimationFrame` callback in the queue
-    // that calls `detectChanges()` on the `ViewRef`. This will lead to a runtime
-    // exception if the `detectChanges()` is called after the `ViewRef` is destroyed.
-    this.cancelAnimationFrame();
   }
 
   setActiveCategories(categoriesToMakeActive: Array<EmojiCategory>) {
@@ -310,16 +309,19 @@ export class PickerComponent implements OnInit, OnDestroy {
       this.activeCategories = categoriesToMakeActive;
     }
   }
-  updateCategoriesSize() {
-    this.categoryRefs.forEach(component => component.memoizeSize());
 
-    if (this.scrollRef) {
-      const target = this.scrollRef.nativeElement;
+  updateCategoriesSize() {
+    this.categoryRefs().forEach(component => component.memoizeSize());
+
+    const scrollRef = this.scrollRef();
+    if (scrollRef) {
+      const target = scrollRef.nativeElement;
       this.scrollHeight = target.scrollHeight;
       this.clientHeight = target.clientHeight;
       this.clientWidth = target.clientWidth;
     }
   }
+
   handleAnchorClick($event: { category: EmojiCategory; index: number }) {
     this.updateCategoriesSize();
     this.selected = $event.category.name;
@@ -327,12 +329,13 @@ export class PickerComponent implements OnInit, OnDestroy {
 
     if (this.SEARCH_CATEGORY.emojis) {
       this.handleSearch(null);
-      this.searchRef?.clear();
+      this.searchRef()?.clear();
       this.handleAnchorClick($event);
       return;
     }
 
-    const component = this.categoryRefs.find(n => n.id === $event.category.id);
+    const scrollRef = this.scrollRef().nativeElement;
+    const component = this.categoryRefs().find(n => n.id === $event.category.id);
     if (component) {
       let { top } = component;
 
@@ -341,19 +344,17 @@ export class PickerComponent implements OnInit, OnDestroy {
       } else {
         top += 1;
       }
-      this.scrollRef.nativeElement.scrollTop = top;
+      scrollRef.scrollTop = top;
     }
     this.nextScroll = $event.category.name;
 
     // handle component scrolling to load emojis
     for (const category of this.categories) {
-      const componentToScroll = this.categoryRefs.find(({ id }) => id === category.id);
-      componentToScroll?.handleScroll(this.scrollRef.nativeElement.scrollTop);
+      const componentToScroll = this.categoryRefs().find(({ id }) => id === category.id);
+      componentToScroll?.handleScroll(scrollRef.scrollTop);
     }
   }
-  categoryTrack(index: number, item: any) {
-    return item.id;
-  }
+
   handleScroll(noSelectionChange = false) {
     if (this.nextScroll) {
       this.selected = this.nextScroll;
@@ -372,7 +373,7 @@ export class PickerComponent implements OnInit, OnDestroy {
     if (this.SEARCH_CATEGORY.emojis) {
       activeCategory = this.SEARCH_CATEGORY;
     } else {
-      const target = this.scrollRef.nativeElement;
+      const target = this.scrollRef().nativeElement;
       // check scroll is not at bottom
       if (target.scrollTop === 0) {
         // hit the TOP
@@ -383,8 +384,8 @@ export class PickerComponent implements OnInit, OnDestroy {
       } else {
         // scrolling
         for (const category of this.categories) {
-          const component = this.categoryRefs.find(({ id }) => id === category.id);
-          const active: boolean | undefined = component?.handleScroll(target.scrollTop);
+          const component = this.categoryRefs().find(({ id }) => id === category.id);
+          const active = component?.handleScroll(target.scrollTop);
           if (active) {
             activeCategory = category;
           }
@@ -404,7 +405,7 @@ export class PickerComponent implements OnInit, OnDestroy {
 
   handleSearch($emojis: any[] | null) {
     this.SEARCH_CATEGORY.emojis = $emojis;
-    for (const component of this.categoryRefs.toArray()) {
+    for (const component of this.categoryRefs()) {
       if (component.name === 'Search') {
         component.emojis = $emojis;
         component.updateDisplay($emojis ? 'block' : 'none');
@@ -413,22 +414,16 @@ export class PickerComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.scrollRef.nativeElement.scrollTop = 0;
+    this.scrollRef().nativeElement.scrollTop = 0;
     this.handleScroll();
   }
 
   handleEnterKey($event: Event, emoji?: EmojiData): void {
-    // Note: the `handleEnterKey` is invoked when the search component dispatches the
-    //       `enterKeyOutsideAngular` event or when any emoji is clicked thus `emojiClickOutsideAngular`
-    //       event is dispatched. Both events are dispatched outside of the Angular zone to prevent
-    //       no-op ticks, basically when users outside of the picker component are not listening
-    //       to any of these events.
-
     if (!emoji) {
       if (this.SEARCH_CATEGORY.emojis !== null && this.SEARCH_CATEGORY.emojis.length) {
         emoji = this.SEARCH_CATEGORY.emojis[0];
         if (emoji) {
-          dispatchInAngularContextIfObserved(this.emojiSelect, this.ngZone, { $event, emoji });
+          this.emojiSelect.emit({ $event, emoji });
         } else {
           return;
         }
@@ -439,7 +434,7 @@ export class PickerComponent implements OnInit, OnDestroy {
       this.frequently.add(emoji);
     }
 
-    const component = this.categoryRefs.toArray()[1];
+    const component = this.categoryRefs()[1];
     if (component && this.enableFrequentEmojiSort) {
       this.ngZone.run(() => {
         component.updateRecentEmojis();
@@ -448,7 +443,7 @@ export class PickerComponent implements OnInit, OnDestroy {
     }
   }
   handleEmojiOver($event: EmojiEvent) {
-    if (!this.showPreview || !this.previewRef) {
+    if (!this.showPreview || !this.previewRef()) {
       return;
     }
 
@@ -465,13 +460,10 @@ export class PickerComponent implements OnInit, OnDestroy {
   }
 
   handleEmojiLeave() {
-    if (!this.showPreview || !this.previewRef) {
+    if (!this.showPreview || !this.previewRef()) {
       return;
     }
-    // Note: `handleEmojiLeave` will be invoked outside of the Angular zone because of the `mouseleave`
-    //       event set up outside of the Angular zone in `ngx-emoji`. See `setupMouseLeaveListener`.
-    //       This is done explicitly because we don't have to run redundant change detection since we
-    //       would still want to leave the Angular zone here when scheduling animation frame.
+
     this.animationFrameRequestId = requestAnimationFrame(() => {
       this.previewEmoji = null;
       this.ref.detectChanges();
@@ -479,10 +471,8 @@ export class PickerComponent implements OnInit, OnDestroy {
   }
 
   handleEmojiClick($event: EmojiEvent) {
-    // Note: we're getting back into the Angular zone because click events on emojis are handled
-    //       outside of the Angular zone.
-    dispatchInAngularContextIfObserved(this.emojiClick, this.ngZone, $event);
-    dispatchInAngularContextIfObserved(this.emojiSelect, this.ngZone, $event);
+    this.emojiClick.emit($event);
+    this.emojiSelect.emit($event);
     this.handleEnterKey($event.$event, $event.emoji);
   }
 
@@ -504,18 +494,5 @@ export class PickerComponent implements OnInit, OnDestroy {
       cancelAnimationFrame(this.animationFrameRequestId);
       this.animationFrameRequestId = null;
     }
-  }
-}
-
-/**
- * This is only a helper function because the same code is being re-used many times.
- */
-function dispatchInAngularContextIfObserved<T>(
-  emitter: EventEmitter<T>,
-  ngZone: NgZone,
-  value: T,
-): void {
-  if (emitter.observed) {
-    ngZone.run(() => emitter.emit(value));
   }
 }

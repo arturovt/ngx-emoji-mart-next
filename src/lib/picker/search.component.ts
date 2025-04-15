@@ -1,19 +1,19 @@
 import {
-  AfterViewInit,
+  afterNextRender,
   Component,
+  DestroyRef,
   ElementRef,
   EventEmitter,
+  inject,
   Input,
   NgZone,
-  OnDestroy,
-  OnInit,
   Output,
-  ViewChild,
+  signal,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { EmojiSearch } from './emoji-search.service';
-import { Subject, fromEvent, takeUntil } from 'rxjs';
 
 let id = 0;
 
@@ -42,7 +42,7 @@ let id = 0;
         class="emoji-mart-search-icon"
         (click)="clear()"
         (keyup.enter)="clear()"
-        [disabled]="!isSearching"
+        [disabled]="!isSearching()"
         [attr.aria-label]="i18n.clear"
       >
         <svg
@@ -52,7 +52,7 @@ let id = 0;
           height="13"
           opacity="0.5"
         >
-          <path [attr.d]="icon" />
+          <path [attr.d]="icon()" />
         </svg>
       </button>
     </div>
@@ -60,7 +60,7 @@ let id = 0;
   preserveWhitespaces: false,
   imports: [FormsModule],
 })
-export class SearchComponent implements AfterViewInit, OnInit, OnDestroy {
+export class SearchComponent {
   @Input() maxResults = 75;
   @Input() autoFocus = false;
   @Input() i18n: any;
@@ -69,46 +69,63 @@ export class SearchComponent implements AfterViewInit, OnInit, OnDestroy {
   @Input() custom: any[] = [];
   @Input() icons!: { [key: string]: string };
   @Input() emojisToShowFilter?: (x: any) => boolean;
+
   @Output() searchResults = new EventEmitter<any[]>();
-  @Output() enterKeyOutsideAngular = new EventEmitter<KeyboardEvent>();
-  @ViewChild('inputRef', { static: true }) private inputRef!: ElementRef<HTMLInputElement>;
-  isSearching = false;
-  icon?: string;
+  @Output() enterKey = new EventEmitter<KeyboardEvent>();
+
+  readonly inputRef = viewChild.required<ElementRef<HTMLInputElement>>('inputRef');
+
+  readonly isSearching = signal(false);
+
+  readonly icon = signal<string>('');
+
   query = '';
-  inputId = `emoji-mart-search-${++id}`;
 
-  private destroy$ = new Subject<void>();
+  readonly inputId = `emoji-mart-search-${++id}`;
 
-  constructor(private ngZone: NgZone, private emojiSearch: EmojiSearch) {}
+  constructor(
+    private ngZone: NgZone,
+    private emojiSearch: EmojiSearch,
+  ) {
+    const destroyRef = inject(DestroyRef);
 
-  ngOnInit() {
-    this.icon = this.icons.search;
-    this.setupKeyupListener();
-  }
+    afterNextRender(() => {
+      this.icon.set(this.icons.search);
 
-  ngAfterViewInit() {
-    if (this.autoFocus) {
-      this.inputRef.nativeElement.focus();
-    }
-  }
+      const inputRef = this.inputRef().nativeElement;
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
+      if (this.autoFocus) {
+        inputRef.focus();
+      }
+
+      this.ngZone.runOutsideAngular(() => {
+        const onKeyup = (event: KeyboardEvent) => {
+          if (!this.query || event.key !== 'Enter') {
+            return;
+          }
+          this.ngZone.run(() => this.enterKey.emit(event));
+          event.preventDefault();
+        };
+
+        inputRef.addEventListener('keyup', onKeyup);
+        destroyRef.onDestroy(() => inputRef.removeEventListener('keyup', onKeyup));
+      });
+    });
   }
 
   clear() {
     this.query = '';
     this.handleSearch('');
-    this.inputRef.nativeElement.focus();
+    this.inputRef().nativeElement.focus();
   }
 
   handleSearch(value: string) {
     if (value === '') {
-      this.icon = this.icons.search;
-      this.isSearching = false;
+      this.icon.set(this.icons.search);
+      this.isSearching.set(false);
     } else {
-      this.icon = this.icons.delete;
-      this.isSearching = true;
+      this.icon.set(this.icons.delete);
+      this.isSearching.set(true);
     }
     const emojis = this.emojiSearch.search(
       this.query,
@@ -123,19 +140,5 @@ export class SearchComponent implements AfterViewInit, OnInit, OnDestroy {
 
   handleChange() {
     this.handleSearch(this.query);
-  }
-
-  private setupKeyupListener(): void {
-    this.ngZone.runOutsideAngular(() =>
-      fromEvent<KeyboardEvent>(this.inputRef.nativeElement, 'keyup')
-        .pipe(takeUntil(this.destroy$))
-        .subscribe($event => {
-          if (!this.query || $event.key !== 'Enter') {
-            return;
-          }
-          this.enterKeyOutsideAngular.emit($event);
-          $event.preventDefault();
-        }),
-    );
   }
 }
