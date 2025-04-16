@@ -1,19 +1,22 @@
+@let _i18n = i18n();
+@let _icons = icons();
+
 <div class="emoji-mart-anchors">
   @for (category of categories(); track category.id) {
     @if (category.anchor !== false) {
       <span
-        [attr.title]="i18n.categories[category.id]"
+        [attr.title]="_i18n.categories[category.id]"
         (click)="this.handleClick($event, $index)"
         class="emoji-mart-anchor"
-        [class.emoji-mart-anchor-selected]="category.name === selected"
-        [style.color]="category.name === selected ? color : null"
+        [class.emoji-mart-anchor-selected]="category.name === selected()"
+        [style.color]="category.name === selected() ? color() : null"
       >
         <div>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-            <path [attr.d]="icons[category.id]" />
+            <path [attr.d]="_icons[category.id]" />
           </svg>
         </div>
-        <span class="emoji-mart-anchor-bar" [style.background-color]="color"></span>
+        <span class="emoji-mart-anchor-bar" [style.background-color]="color()"></span>
       </span>
     }
   }

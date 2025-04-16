@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, Input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 import { EmojiCategory } from '@ctrl/ngx-emoji-mart/ngx-emoji';
 
@@ -8,11 +8,11 @@ import { EmojiCategory } from '@ctrl/ngx-emoji-mart/ngx-emoji';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnchorsComponent {
-  protected readonly categories = input<EmojiCategory[]>([]);
-  @Input() color?: string;
-  @Input() selected?: string;
-  @Input() i18n: any;
-  @Input() icons: { [key: string]: string } = {};
+  readonly categories = input<EmojiCategory[]>([]);
+  readonly color = input<string>();
+  readonly selected = input<string>();
+  readonly i18n = input<any>();
+  readonly icons = input<Record<string, string>>({});
 
   readonly anchorClick = output<{ category: EmojiCategory; index: number }>();
 

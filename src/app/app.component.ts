@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { environment } from '../environments/environment';
-import { EmojiComponent, EmojiEvent } from '../lib/picker/ngx-emoji';
+import { EmojiEvent } from '../lib/picker/ngx-emoji';
 import { PickerComponent } from '../lib/picker/picker.component';
 import { FooterComponent } from './footer.component';
 
@@ -30,7 +30,7 @@ const CUSTOM_EMOJIS = [
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
-    imports: [CommonModule, PickerComponent, EmojiComponent, FooterComponent]
+    imports: [CommonModule, PickerComponent, FooterComponent]
 })
 export class AppComponent {
   themes = ['native', 'apple', 'google', 'twitter', 'facebook'];

@@ -10,6 +10,7 @@ import {
   NgZone,
   OnInit,
   Output,
+  signal,
   viewChild,
   viewChildren,
 } from '@angular/core';
@@ -120,8 +121,9 @@ export class PickerComponent implements OnInit {
   selected?: string;
   nextScroll?: string;
   scrollTop?: number;
-  firstRender = true;
-  previewEmoji: EmojiData | null = null;
+
+  readonly previewEmoji = signal<EmojiData | null>(null);
+
   animationFrameRequestId: number | null = null;
   NAMESPACE = 'emoji-mart';
   measureScrollbar = 0;
@@ -442,6 +444,7 @@ export class PickerComponent implements OnInit {
       });
     }
   }
+
   handleEmojiOver($event: EmojiEvent) {
     if (!this.showPreview || !this.previewRef()) {
       return;
@@ -454,9 +457,8 @@ export class PickerComponent implements OnInit {
       $event.emoji = { ...emojiData };
     }
 
-    this.previewEmoji = $event.emoji;
+    this.previewEmoji.set($event.emoji);
     this.cancelAnimationFrame();
-    this.ref.detectChanges();
   }
 
   handleEmojiLeave() {
@@ -465,8 +467,7 @@ export class PickerComponent implements OnInit {
     }
 
     this.animationFrameRequestId = requestAnimationFrame(() => {
-      this.previewEmoji = null;
-      this.ref.detectChanges();
+      this.previewEmoji.set(null);
     });
   }
 
