@@ -11,7 +11,6 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 
 import { EmojiSearch } from './emoji-search.service';
 
@@ -27,8 +26,8 @@ let id = 0;
         type="search"
         [placeholder]="i18n.search"
         [autofocus]="autoFocus"
-        [(ngModel)]="query"
-        (ngModelChange)="handleChange()"
+        [value]="query"
+        (input)="handleChange($event.target.value)"
       />
       <!--
       Use a <label> in addition to the placeholder for accessibility, but place it off-screen
@@ -57,8 +56,6 @@ let id = 0;
       </button>
     </div>
   `,
-  preserveWhitespaces: false,
-  imports: [FormsModule],
 })
 export class SearchComponent {
   @Input() maxResults = 75;
@@ -138,7 +135,8 @@ export class SearchComponent {
     this.searchResults.emit(emojis);
   }
 
-  handleChange() {
+  handleChange(query: string) {
+    this.query = query;
     this.handleSearch(this.query);
   }
 }
