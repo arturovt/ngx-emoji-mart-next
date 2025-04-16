@@ -1,6 +1,6 @@
 import { inject, TestBed, waitForAsync } from '@angular/core/testing';
 
-import { EmojiService } from '@ctrl/ngx-emoji-mart/ngx-emoji';
+import { EmojiService } from 'ngx-emoji-mart-next/ngx-emoji';
 import { EmojiFrequentlyService } from './emoji-frequently.service';
 
 describe('EmojiFrequently', () => {

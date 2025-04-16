@@ -1,9 +1,8 @@
 <img align="right" width="200" src="https://raw.githubusercontent.com/scttcper/ngx-emoji-mart/master/misc/preview.png" />
 
-# ngx-emoji-mart
+# ngx-emoji-mart-next
 
-[![npm](https://badge.fury.io/js/%40ctrl%2Fngx-emoji-mart.svg)](https://www.npmjs.org/package/@ctrl/ngx-emoji-mart)
-[![codecov](https://img.shields.io/codecov/c/github/scttcper/ngx-emoji-mart.svg)](https://codecov.io/github/scttcper/ngx-emoji-mart)
+⚠️ Note: This is a maintained fork of the original `@ctrl/ngx-emoji-mart`, which is no longer actively maintained. This fork — `ngx-emoji-mart-next` — aims to fix bugs, add support for newer Angular versions.
 
 **DEMO**: https://ngx-emoji-mart.vercel.app
 
@@ -12,26 +11,20 @@ This project is a port of [emoji-mart](https://github.com/missive/emoji-mart) by
 ## Installation
 
 ```sh
-npm install @ctrl/ngx-emoji-mart
+npm install ngx-emoji-mart-next
 # Or if you're using yarn
-yarn add @ctrl/ngx-emoji-mart
+yarn add ngx-emoji-mart-next
 # Or if you're using pnpm
-pnpm install @ctrl/ngx-emoji-mart
+pnpm install ngx-emoji-mart-next
 ```
 
 ## Dependencies
 
 Latest version available for each version of Angular
 
-| @ctrl/ngx-emoji-mart | Angular   |
-| -------------------- | --------- |
-| 1.0.6                | 8.x       |
-| 3.1.0                | 9.x       |
-| 5.1.2                | 10.x 11.x |
-| 6.2.0                | 12.x 13.x |
-| 7.1.0                | 14.x      |
-| 8.2.0                | 15.x      |
-| current              | >=16.x    |
+| ngx-emoji-mart-next | Angular |
+| ------------------- | ------- |
+| current             | >=19.x  |
 
 ## Components
 
@@ -40,7 +33,7 @@ Latest version available for each version of Angular
 Add `PickerComponent` to your module imports:
 
 ```ts
-import { PickerComponent } from '@ctrl/ngx-emoji-mart';
+import { PickerComponent } from 'ngx-emoji-mart-next';
 
 @NgModule({
   imports: [PickerComponent],
@@ -59,7 +52,7 @@ export class AppComponent {}
 Import styles in `styles.scss`:
 
 ```scss
-@import '@ctrl/ngx-emoji-mart/picker';
+@import 'ngx-emoji-mart-next/picker';
 ```
 
 Or bundle those styles through `angular.json` configuration:
@@ -69,7 +62,7 @@ Or bundle those styles through `angular.json` configuration:
   "options": {
     "styles": [
       "src/styles.scss",
-      "node_modules/@ctrl/ngx-emoji-mart/picker.css"
+      "node_modules/ngx-emoji-mart-next/picker.css"
     ]
   }
 }
@@ -114,7 +107,7 @@ Now we can use the `emoji-mart` component:
 | **emojiTooltip**            | `false`                   | Show emojis short name when hovering (title)                                                                                                                                             |
 | **skin**                    | `1`                       | Default skin color: `1, 2, 3, 4, 5, 6`                                                                                                                                                   |
 | **style**                   |                           | Inline styles applied to the root element. Useful for positioning                                                                                                                        |
-| **title**                   | `Emoji Mart™`             | The title shown when no emojis are hovered                                                                                                                                               |
+| **title**                   | `Emoji Mart™`            | The title shown when no emojis are hovered                                                                                                                                               |
 | **hideObsolete**            | `true`                    | Hides ex: "cop" emoji in favor of female and male emoji                                                                                                                                  |
 | **notFoundEmoji**           | `sleuth_or_spy`           | The emoji shown when there are no search results                                                                                                                                         |
 | **categoriesIcons**         | see `svgs/index.ts`       | the anchor icons                                                                                                                                                                         |
@@ -220,7 +213,7 @@ Sheets are served from [unpkg](https://unpkg.com), a global CDN that serves file
 Add `EmojiComponent` to your module or standalone component `imports`:
 
 ```ts
-import { EmojiComponent } from '@ctrl/ngx-emoji-mart/ngx-emoji';
+import { EmojiComponent } from 'ngx-emoji-mart-next/ngx-emoji';
 ```
 
 ```html
@@ -280,7 +273,8 @@ const customEmojis = [
     text: '',
     emoticons: [],
     keywords: ['test', 'flag'],
-    spriteUrl: 'https://cdn.jsdelivr.net/npm/emoji-datasource-twitter@14.0.0/img/twitter/sheets-256/64.png',
+    spriteUrl:
+      'https://cdn.jsdelivr.net/npm/emoji-datasource-twitter@14.0.0/img/twitter/sheets-256/64.png',
     sheet_x: 1,
     sheet_y: 1,
     size: 64,
@@ -299,7 +293,7 @@ const customEmojis = [
 The `Picker` doesn’t have to be mounted for you to take advantage of the advanced search results.
 
 ```ts
-import { EmojiSearch } from '@ctrl/ngx-emoji-mart';
+import { EmojiSearch } from 'ngx-emoji-mart-next';
 
 class ex {
   constructor(private emojiSearch: EmojiSearch) {

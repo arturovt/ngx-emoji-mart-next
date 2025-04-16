@@ -1,7 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 
-import { EmojiData } from '@ctrl/ngx-emoji-mart/ngx-emoji';
+import { EmojiData } from 'ngx-emoji-mart-next/ngx-emoji';
 
 @Injectable({ providedIn: 'root' })
 export class EmojiFrequentlyService {
