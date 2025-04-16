@@ -27,7 +27,7 @@ let id = 0;
         [placeholder]="i18n.search"
         [autofocus]="autoFocus"
         [value]="query"
-        (input)="handleChange($event.target.value)"
+        (input)="handleChange($event)"
       />
       <!--
       Use a <label> in addition to the placeholder for accessibility, but place it off-screen
@@ -135,8 +135,9 @@ export class SearchComponent {
     this.searchResults.emit(emojis);
   }
 
-  handleChange(query: string) {
-    this.query = query;
+  handleChange(event: Event) {
+    const target = <HTMLInputElement>event.target;
+    this.query = target.value;
     this.handleSearch(this.query);
   }
 }
