@@ -1,4 +1,13 @@
-import { Emoji, EmojiComponent, EmojiService } from 'ngx-emoji-mart-next/ngx-emoji';
+import {
+  Emoji,
+  EmojiBackgroundImageFn,
+  EmojiComponent,
+  EmojiImageUrlFn,
+  EmojiService,
+  EmojiSet,
+  EmojiSheetSize,
+  EmojiSkin,
+} from 'ngx-emoji-mart-next/ngx-emoji';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -39,15 +48,15 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
   @Input() notFoundEmoji?: string;
   @Input() virtualize = false;
   @Input() virtualizeOffset = 0;
-  @Input() emojiIsNative?: Emoji['isNative'];
-  @Input() emojiSkin!: Emoji['skin'];
-  @Input() emojiSize!: Emoji['size'];
-  @Input() emojiSet!: Emoji['set'];
-  @Input() emojiSheetSize!: Emoji['sheetSize'];
-  @Input() emojiForceSize!: Emoji['forceSize'];
-  @Input() emojiTooltip!: Emoji['tooltip'];
-  @Input() emojiBackgroundImageFn?: Emoji['backgroundImageFn'];
-  @Input() emojiImageUrlFn?: Emoji['imageUrlFn'];
+  @Input() emojiIsNative = false;
+  @Input() emojiSkin!: EmojiSkin;
+  @Input() emojiSize!: number;
+  @Input() emojiSet!: EmojiSet;
+  @Input() emojiSheetSize!: EmojiSheetSize;
+  @Input() emojiForceSize!: boolean;
+  @Input() emojiTooltip!: boolean;
+  @Input() emojiBackgroundImageFn?: EmojiBackgroundImageFn;
+  @Input() emojiImageUrlFn?: EmojiImageUrlFn;
   @Input() emojiUseButton?: boolean;
 
   /**

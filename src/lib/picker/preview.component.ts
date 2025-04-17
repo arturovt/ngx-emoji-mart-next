@@ -1,4 +1,13 @@
-import { Emoji, EmojiComponent, EmojiData, EmojiService } from 'ngx-emoji-mart-next/ngx-emoji';
+import {
+  EmojiBackgroundImageFn,
+  EmojiComponent,
+  EmojiData,
+  EmojiImageUrlFn,
+  EmojiService,
+  EmojiSet,
+  EmojiSheetSize,
+  EmojiSkin,
+} from 'ngx-emoji-mart-next/ngx-emoji';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -22,14 +31,14 @@ export class PreviewComponent implements OnChanges {
   @Input() emoji: any;
   @Input() idleEmoji: any;
   @Input() i18n: any;
-  @Input() emojiIsNative?: Emoji['isNative'];
-  @Input() emojiSkin?: Emoji['skin'];
-  @Input() emojiSize?: Emoji['size'];
-  @Input() emojiSet?: Emoji['set'];
-  @Input() emojiSheetSize?: Emoji['sheetSize'];
-  @Input() emojiBackgroundImageFn?: Emoji['backgroundImageFn'];
-  @Input() emojiImageUrlFn?: Emoji['imageUrlFn'];
-  @Output() skinChange = new EventEmitter<Emoji['skin']>();
+  @Input() emojiIsNative = false;
+  @Input() emojiSkin?: EmojiSkin;
+  @Input() emojiSize?: number;
+  @Input() emojiSet?: EmojiSet;
+  @Input() emojiSheetSize?: EmojiSheetSize;
+  @Input() emojiBackgroundImageFn?: EmojiBackgroundImageFn;
+  @Input() emojiImageUrlFn?: EmojiImageUrlFn;
+  @Output() skinChange = new EventEmitter<EmojiSkin>();
   emojiData: Partial<EmojiData> = {};
   listedEmoticons?: string[];
 

@@ -18,9 +18,14 @@ import {
 import {
   categories,
   Emoji,
+  EmojiBackgroundImageFn,
   EmojiCategory,
   EmojiData,
   EmojiEvent,
+  EmojiImageUrlFn,
+  EmojiSet,
+  EmojiSheetSize,
+  EmojiSkin,
 } from 'ngx-emoji-mart-next/ngx-emoji';
 import { CategoryComponent } from './category.component';
 import { EmojiFrequentlyService } from './emoji-frequently.service';
@@ -81,19 +86,19 @@ export class PickerComponent implements OnInit {
   @Input() categories: EmojiCategory[] = [];
   /** used to temporarily draw categories */
   @Input() activeCategories: EmojiCategory[] = [];
-  @Input() set: Emoji['set'] = 'apple';
-  @Input() skin: Emoji['skin'] = 1;
+  @Input() set: EmojiSet = 'apple';
+  @Input() skin: EmojiSkin = 1;
   /** Renders the native unicode emoji */
-  @Input() isNative: Emoji['isNative'] = false;
-  @Input() emojiSize: Emoji['size'] = 24;
-  @Input() sheetSize: Emoji['sheetSize'] = 64;
+  @Input() isNative = false;
+  @Input() emojiSize = 24;
+  @Input() sheetSize: EmojiSheetSize = 64;
   @Input() emojisToShowFilter?: (x: string) => boolean;
   @Input() showPreview = true;
   @Input() emojiTooltip = false;
   @Input() autoFocus = false;
   @Input() custom: any[] = [];
   @Input() hideRecent = true;
-  @Input() imageUrlFn: Emoji['imageUrlFn'];
+  @Input() imageUrlFn?: EmojiImageUrlFn;
   @Input() include?: string[];
   @Input() exclude?: string[];
   @Input() notFoundEmoji = 'sleuth_or_spy';
@@ -108,7 +113,7 @@ export class PickerComponent implements OnInit {
   @Input() recent?: string[];
   @Output() emojiClick = new EventEmitter<any>();
   @Output() emojiSelect = new EventEmitter<any>();
-  @Output() skinChange = new EventEmitter<Emoji['skin']>();
+  @Output() skinChange = new EventEmitter<EmojiSkin>();
 
   readonly scrollRef = viewChild.required<ElementRef<HTMLElement>>('scrollRef');
   readonly previewRef = viewChild(PreviewComponent);
@@ -145,7 +150,7 @@ export class PickerComponent implements OnInit {
   };
 
   @Input()
-  backgroundImageFn: Emoji['backgroundImageFn'] = (set: string, sheetSize: number) =>
+  backgroundImageFn: EmojiBackgroundImageFn = (set: string, sheetSize: number) =>
     `https://cdn.jsdelivr.net/npm/emoji-datasource-${set}@14.0.0/img/${set}/sheets-256/${sheetSize}.png`;
 
   private destroyRef = inject(DestroyRef);
@@ -477,7 +482,7 @@ export class PickerComponent implements OnInit {
     this.handleEnterKey($event.$event, $event.emoji);
   }
 
-  handleSkinChange(skin: Emoji['skin']) {
+  handleSkinChange(skin: EmojiSkin) {
     this.skin = skin;
     localStorage.setItem(`${this.NAMESPACE}.skin`, String(skin));
     this.skinChange.emit(skin);

@@ -1,20 +1,20 @@
-@if (isVisible) {
-  @if (useButton) {
+@if (isVisible()) {
+  @if (useButton()) {
     <button
       #button
       type="button"
-      [attr.title]="title"
-      [attr.aria-label]="label"
+      [attr.title]="title()"
+      [attr.aria-label]="label()"
       class="emoji-mart-emoji"
-      [class.emoji-mart-emoji-native]="isNative"
-      [class.emoji-mart-emoji-custom]="custom"
+      [class.emoji-mart-emoji-native]="isNative()"
+      [class.emoji-mart-emoji-custom]="custom()"
       (click)="handleClick($event)"
       (mouseenter)="handleMouseenter($event)"
       (mouseleave)="handleMouseleave($event)"
     >
       <span [style]="styles()">
-        @if (isNative) {
-          {{ unified }}
+        @if (isNative()) {
+          {{ unified() }}
         }
         <ng-content></ng-content>
       </span>
@@ -22,18 +22,18 @@
   } @else {
     <span
       #button
-      [attr.title]="title"
-      [attr.aria-label]="label"
+      [attr.title]="title()"
+      [attr.aria-label]="label()"
       class="emoji-mart-emoji"
-      [class.emoji-mart-emoji-native]="isNative"
-      [class.emoji-mart-emoji-custom]="custom"
+      [class.emoji-mart-emoji-native]="isNative()"
+      [class.emoji-mart-emoji-custom]="custom()"
       (click)="handleClick($event)"
       (mouseenter)="handleMouseenter($event)"
       (mouseleave)="handleMouseleave($event)"
     >
       <span [style]="styles()">
-        @if (isNative) {
-          {{ unified }}
+        @if (isNative()) {
+          {{ unified() }}
         }
         <ng-content></ng-content>
       </span>

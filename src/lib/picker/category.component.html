@@ -12,7 +12,7 @@
     </span>
   </div>
 
-  <div>
+  <div class="emoji-mart-filtered-results">
     @if (virtualize) {
       @if (_filteredEmojis(); as filteredEmojis) {
         @for (emoji of filteredEmojis; track emoji) {
@@ -60,7 +60,7 @@
 
   @if (noEmojiToDisplay) {
     <div>
-      <div>
+      <div class="emoji-mart-no-results-emoji">
         <ngx-emoji
           [emoji]="notFoundEmoji"
           [size]="38"
@@ -81,25 +81,3 @@
     </div>
   }
 </section>
-
-<ng-template #normalRenderTemplate>
-  @for (emoji of emojisToDisplay; track emoji) {
-    <ngx-emoji
-      [emoji]="emoji"
-      [size]="emojiSize"
-      [skin]="emojiSkin"
-      [isNative]="emojiIsNative"
-      [set]="emojiSet"
-      [sheetSize]="emojiSheetSize"
-      [forceSize]="emojiForceSize"
-      [tooltip]="emojiTooltip"
-      [backgroundImageFn]="emojiBackgroundImageFn"
-      [imageUrlFn]="emojiImageUrlFn"
-      [hideObsolete]="hideObsolete"
-      [useButton]="emojiUseButton"
-      (emojiOver)="emojiOver.emit($event)"
-      (emojiLeave)="emojiLeave.emit($event)"
-      (emojiClick)="emojiClick.emit($event)"
-    />
-  }
-</ng-template>
