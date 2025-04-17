@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  computed,
   ElementRef,
   EventEmitter,
   Input,
@@ -12,6 +13,7 @@ import {
   Output,
   signal,
   SimpleChanges,
+  viewChild,
   ViewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -57,7 +59,19 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
   @Output() emojiLeave: Emoji['emojiLeave'] = new EventEmitter();
   @Output() emojiClick: Emoji['emojiClick'] = new EventEmitter();
 
-  @ViewChild('container', { static: true }) container!: ElementRef;
+  readonly container = viewChild.required<ElementRef<HTMLElement>>('container');
+  readonly scrollSection = computed(() => {
+    const container = this.container().nativeElement;
+    const scrollSection = <HTMLElement>container.parentNode!.parentNode;
+    if (typeof ngDevMode !== 'undefined' && ngDevMode) {
+      // Ensure DOM structure has not been changed.
+      if (!scrollSection.classList.contains('emoji-mart-scroll')) {
+        throw new Error('<emoji-category /> container should have a proper scroll section parent.');
+      }
+    }
+    return scrollSection;
+  });
+
   @ViewChild('label', { static: true }) label!: ElementRef;
 
   readonly containerStyles = signal<Record<string, string>>({});
@@ -102,7 +116,7 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
       return;
     }
 
-    const { width } = this.container.nativeElement.getBoundingClientRect();
+    const { width } = this.container().nativeElement.getBoundingClientRect();
 
     const perRow = Math.floor(width / (this.emojiSize + 12));
     this.rows = Math.ceil(this.emojisToDisplay.length / perRow);
@@ -114,7 +128,7 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
 
     this.ref.detectChanges();
 
-    this.handleScroll(this.container.nativeElement.parentNode.parentNode.scrollTop);
+    this.handleScroll(this.scrollSection().scrollTop);
   }
 
   get noEmojiToDisplay(): boolean {
@@ -122,8 +136,8 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
   }
 
   memoizeSize() {
-    const parent = this.container.nativeElement.parentNode.parentNode;
-    const { top, height } = this.container.nativeElement.getBoundingClientRect();
+    const parent = this.scrollSection();
+    const { top, height } = this.container().nativeElement.getBoundingClientRect();
     const parentTop = parent.getBoundingClientRect().top;
     const labelHeight = this.label.nativeElement.getBoundingClientRect().height;
 
@@ -142,8 +156,8 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
     margin = margin > this.maxMargin ? this.maxMargin : margin;
 
     if (this.virtualize) {
-      const { top, height } = this.container.nativeElement.getBoundingClientRect();
-      const parentHeight = this.container.nativeElement.parentNode.parentNode.clientHeight;
+      const { top, height } = this.container().nativeElement.getBoundingClientRect();
+      const parentHeight = this.scrollSection().clientHeight;
 
       if (
         parentHeight + (parentHeight + this.virtualizeOffset) >= top &&
