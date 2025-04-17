@@ -2,13 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { CompressedEmojiData, EmojiData, EmojiVariation } from './data/data.interfaces';
 import { emojis } from './data/emojis';
-import {
-  Emoji,
-  EmojiBackgroundImageFn,
-  EmojiSet,
-  EmojiSheetSize,
-  EmojiSkin,
-} from './emoji.component';
+import { Emoji } from './emoji.component';
 
 const COLONS_REGEX = /^(?:\:([^\:]+)\:)(?:\:skin-tone-(\d)\:)?$/;
 const SKINS = ['1F3FA', '1F3FB', '1F3FC', '1F3FD', '1F3FE', '1F3FF'];
@@ -78,7 +72,7 @@ export class EmojiService {
     });
   }
 
-  getData(emoji: EmojiData | string, skin?: EmojiSkin, set?: EmojiSet): EmojiData | null {
+  getData(emoji: EmojiData | string, skin?: Emoji['skin'], set?: Emoji['set']): EmojiData | null {
     let emojiData: any;
 
     if (typeof emoji === 'string') {
@@ -88,7 +82,7 @@ export class EmojiService {
         emoji = matches[1];
 
         if (matches[2]) {
-          skin = parseInt(matches[2], 10) as EmojiSkin;
+          skin = parseInt(matches[2], 10) as Emoji['skin'];
         }
       }
       if (this.names.hasOwnProperty(emoji)) {
@@ -134,11 +128,11 @@ export class EmojiService {
 
   emojiSpriteStyles(
     sheet: EmojiData['sheet'],
-    set: EmojiSet = 'apple',
-    size = 24,
-    sheetSize: EmojiSheetSize = 64,
-    sheetRows = 60,
-    backgroundImageFn: EmojiBackgroundImageFn = DEFAULT_BACKGROUNDFN,
+    set: Emoji['set'] = 'apple',
+    size: Emoji['size'] = 24,
+    sheetSize: Emoji['sheetSize'] = 64,
+    sheetRows: Emoji['sheetRows'] = 60,
+    backgroundImageFn: Emoji['backgroundImageFn'] = DEFAULT_BACKGROUNDFN,
     sheetColumns = 61,
     url?: string,
   ) {
@@ -173,7 +167,7 @@ export class EmojiService {
     return { ...emoji };
   }
 
-  getSanitizedData(emoji: string | EmojiData, skin?: EmojiSkin, set?: EmojiSet) {
+  getSanitizedData(emoji: string | EmojiData, skin?: Emoji['skin'], set?: Emoji['set']) {
     return this.sanitize(this.getData(emoji, skin, set));
   }
 }

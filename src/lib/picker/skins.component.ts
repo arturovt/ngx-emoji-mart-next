@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core';
 
-import { EmojiSkin } from 'ngx-emoji-mart-next/ngx-emoji';
+import { Emoji } from 'ngx-emoji-mart-next/ngx-emoji';
 
 @Component({
   selector: 'emoji-skins',
@@ -37,40 +37,40 @@ import { EmojiSkin } from 'ngx-emoji-mart-next/ngx-emoji';
 })
 export class SkinComponent {
   /** currently selected skin */
-  @Input() skin?: EmojiSkin;
+  @Input() skin?: Emoji['skin'];
   @Input() i18n: any;
 
-  @Output() changeSkin = new EventEmitter<EmojiSkin>();
+  @Output() changeSkin = new EventEmitter<Emoji['skin']>();
 
   readonly opened = signal(false);
 
-  readonly skinTones: EmojiSkin[] = [1, 2, 3, 4, 5, 6];
+  readonly skinTones: Emoji['skin'][] = [1, 2, 3, 4, 5, 6];
 
   toggleOpen() {
     this.opened.update(opened => !opened);
   }
 
-  isSelected(skinTone: EmojiSkin): boolean {
+  isSelected(skinTone: Emoji['skin']): boolean {
     return skinTone === this.skin;
   }
 
-  isVisible(skinTone: EmojiSkin): boolean {
+  isVisible(skinTone: Emoji['skin']): boolean {
     return this.opened() || this.isSelected(skinTone);
   }
 
-  pressed(skinTone: EmojiSkin) {
+  pressed(skinTone: Emoji['skin']) {
     return this.opened() ? !!this.isSelected(skinTone) : '';
   }
 
-  tabIndex(skinTone: EmojiSkin) {
+  tabIndex(skinTone: Emoji['skin']) {
     return this.isVisible(skinTone) ? '0' : '';
   }
 
-  expanded(skinTone: EmojiSkin) {
+  expanded(skinTone: Emoji['skin']) {
     return this.isSelected(skinTone) ? this.opened : '';
   }
 
-  handleClick(skin: EmojiSkin) {
+  handleClick(skin: Emoji['skin']) {
     if (!this.opened()) {
       this.opened.set(true);
       return;

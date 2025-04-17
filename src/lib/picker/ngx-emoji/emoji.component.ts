@@ -5,43 +5,30 @@ import {
   Input,
   OnChanges,
   Output,
-  Signal,
   inject,
-  input,
   signal,
 } from '@angular/core';
 
 import { EmojiData } from './data/data.interfaces';
 import { DEFAULT_BACKGROUNDFN, EmojiService } from './emoji.service';
 
-export type EmojiSkin = 1 | 2 | 3 | 4 | 5 | 6;
-
-export type EmojiSheetSize = 16 | 20 | 32 | 64 | 72;
-
-export type EmojiSet = 'apple' | 'google' | 'twitter' | 'facebook' | '';
-
-export type EmojiImageUrlFn = (emoji: EmojiData | null) => string;
-
-export type EmojiBackgroundImageFn = (set: string, sheetSize: number) => string;
-
 export interface Emoji {
   /** Renders the native unicode emoji */
-  isNative: Signal<boolean>;
-  forceSize: Signal<boolean>;
-  tooltip: Signal<boolean>;
-  skin: Signal<EmojiSkin>;
-  sheetSize: Signal<EmojiSheetSize>;
-  sheetRows: Signal<number | undefined>;
-  set: Signal<EmojiSet>;
-  size: Signal<number>;
-  emoji: Signal<string | EmojiData>;
-  backgroundImageFn: Signal<EmojiBackgroundImageFn>;
-  fallback: Signal<((data: any, props: any) => string) | undefined>;
-  imageUrlFn: Signal<EmojiImageUrlFn | undefined>;
-
+  isNative: boolean;
+  forceSize: boolean;
+  tooltip: boolean;
+  skin: 1 | 2 | 3 | 4 | 5 | 6;
+  sheetSize: 16 | 20 | 32 | 64 | 72;
+  sheetRows?: number;
+  set: 'apple' | 'google' | 'twitter' | 'facebook' | '';
+  size: number;
+  emoji: string | EmojiData;
+  backgroundImageFn: (set: string, sheetSize: number) => string;
+  fallback?: (data: any, props: any) => string;
   emojiOver: EventEmitter<EmojiEvent>;
   emojiLeave: EventEmitter<EmojiEvent>;
   emojiClick: EventEmitter<EmojiEvent>;
+  imageUrlFn?: (emoji: EmojiData | null) => string;
 }
 
 export interface EmojiEvent {
@@ -55,20 +42,20 @@ export interface EmojiEvent {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EmojiComponent implements OnChanges, Emoji {
-  readonly skin: Emoji['skin'] = input(1);
-  readonly set: Emoji['set'] = input('apple');
-  readonly sheetSize: Emoji['sheetSize'] = input(64);
+  @Input() skin: Emoji['skin'] = 1;
+  @Input() set: Emoji['set'] = 'apple';
+  @Input() sheetSize: Emoji['sheetSize'] = 64;
   /** Renders the native unicode emoji */
-  readonly isNative: Emoji['isNative'] = input(false);
-  readonly forceSize: Emoji['forceSize'] = input(false);
-  readonly tooltip: Emoji['tooltip'] = input(false);
-  readonly size: Emoji['size'] = input(24);
-  readonly emoji: Emoji['emoji'] = input('');
-  readonly fallback: Emoji['fallback'] = input();
-  readonly hideObsolete = input(false);
-  readonly sheetRows = input<number>();
-  readonly sheetColumns = input<number>();
-  readonly useButton = input(false);
+  @Input() isNative: Emoji['isNative'] = false;
+  @Input() forceSize: Emoji['forceSize'] = false;
+  @Input() tooltip: Emoji['tooltip'] = false;
+  @Input() size: Emoji['size'] = 24;
+  @Input() emoji: Emoji['emoji'] = '';
+  @Input() fallback?: Emoji['fallback'];
+  @Input() hideObsolete = false;
+  @Input() sheetRows?: number;
+  @Input() sheetColumns?: number;
+  @Input() useButton?: boolean;
 
   @Output() emojiOver: Emoji['emojiOver'] = new EventEmitter();
   @Output() emojiLeave: Emoji['emojiLeave'] = new EventEmitter();
@@ -76,69 +63,47 @@ export class EmojiComponent implements OnChanges, Emoji {
 
   protected readonly styles = signal<Record<string, string | undefined>>({});
 
-  readonly title = signal<string | undefined>(undefined);
-  readonly label = signal('');
-
-  readonly unified = signal<string | null>(null);
-
-  readonly custom = signal(false);
-
-  readonly isVisible = signal(true);
-
+  title?: string = undefined;
+  label = '';
+  unified?: string | null;
+  custom = false;
+  isVisible = true;
   // TODO: replace 4.0.3 w/ dynamic get verison from emoji-datasource in package.json
-  readonly backgroundImageFn: Emoji['backgroundImageFn'] = input(DEFAULT_BACKGROUNDFN);
-  readonly imageUrlFn: Emoji['imageUrlFn'] = input();
+  @Input() backgroundImageFn: Emoji['backgroundImageFn'] = DEFAULT_BACKGROUNDFN;
+  @Input() imageUrlFn?: Emoji['imageUrlFn'];
 
   private readonly emojiService = inject(EmojiService);
 
   ngOnChanges() {
-    // If there's no emoji, hide the component.
-    if (!this.emoji()) {
-      return this.isVisible.set(false);
+    if (!this.emoji) {
+      return (this.isVisible = false);
     }
-
-    // Get the associated emoji data.
     const data = this.getData();
-
-    // If no data found, hide the component
     if (!data) {
-      return this.isVisible.set(false);
+      return (this.isVisible = false);
     }
-
-    // Set the unified value (native emoji), or null if not available.
-    this.unified.set(data.native || null);
-
-    // If it's a custom emoji, store custom data.
+    // const children = this.children;
+    this.unified = data.native || null;
     if (data.custom) {
-      this.custom.set(data.custom);
+      this.custom = data.custom;
     }
-
-    // If neither a unified value nor a custom emoji is present, hide the component.
     if (!data.unified && !data.custom) {
-      return this.isVisible.set(false);
+      return (this.isVisible = false);
+    }
+    if (this.tooltip) {
+      this.title = data.shortNames[0];
+    }
+    if (data.obsoletedBy && this.hideObsolete) {
+      return (this.isVisible = false);
     }
 
-    // If tooltip is enabled, set the title to the first short name.
-    if (this.tooltip()) {
-      this.title.set(data.shortNames[0]);
-    }
+    this.label = [data.native].concat(data.shortNames).filter(Boolean).join(', ');
 
-    // If the emoji has been obsoleted and the setting to hide obsolete
-    // emojis is on, hide the component.
-    if (data.obsoletedBy && this.hideObsolete()) {
-      return this.isVisible.set(false);
-    }
-
-    // Set the label using native emoji and short names, filtered and joined by commas.
-    this.label.set([data.native].concat(data.shortNames).filter(Boolean).join(', '));
-
-    if (this.isNative() && data.unified && data.native) {
-      // If emoji is native, has a unified code, and a native representation:
-      // Apply font size style (used to hide older gender-neutral emoji).
+    if (this.isNative && data.unified && data.native) {
+      // hide older emoji before the split into gendered emoji
       this.styles.set({ fontSize: `${this.size}px` });
 
-      // If forceSize is enabled, enforce fixed width/height styles.
-      if (this.forceSize()) {
+      if (this.forceSize) {
         this.styles.update(styles => ({
           ...styles,
           display: 'inline-block',
@@ -148,28 +113,19 @@ export class EmojiComponent implements OnChanges, Emoji {
         }));
       }
     } else if (data.custom) {
-      // If it's a custom emoji:
-      // Set base styles for size and display.
       this.styles.set({
         width: `${this.size}px`,
         height: `${this.size}px`,
         display: 'inline-block',
       });
-
-      const sheetRows = this.sheetRows();
-      const sheetColumns = this.sheetColumns();
-
-      if (data.spriteUrl && sheetRows && sheetColumns) {
-        // If using sprite sheet for custom emoji:
-        // Set background image and position from sprite.
+      if (data.spriteUrl && this.sheetRows && this.sheetColumns) {
         this.styles.update(styles => ({
           ...styles,
           backgroundImage: `url(${data.spriteUrl})`,
-          backgroundSize: `${100 * sheetColumns}% ${100 * sheetRows}%`,
-          backgroundPosition: this.emojiService.getSpritePosition(data.sheet, sheetColumns),
+          backgroundSize: `${100 * this.sheetColumns!}% ${100 * this.sheetRows!}%`,
+          backgroundPosition: this.emojiService.getSpritePosition(data.sheet, this.sheetColumns!),
         }));
       } else {
-        // Fallback to individual image if sprite is not available.
         this.styles.update(styles => ({
           ...styles,
           backgroundImage: `url(${data.imageUrl})`,
@@ -177,44 +133,36 @@ export class EmojiComponent implements OnChanges, Emoji {
         }));
       }
     } else {
-      // Handle standard non-custom emoji (likely from sprite sheet).
-      if (data.hidden.length && data.hidden.includes(this.set())) {
-        // If emoji is hidden in the current set.
-        const fallback = this.fallback();
-        if (fallback) {
-          // Use fallback emoji rendering.
+      if (data.hidden.length && data.hidden.includes(this.set)) {
+        if (this.fallback) {
           this.styles.set({ fontSize: `${this.size}px` });
-          this.unified.set(fallback(data, this));
+          this.unified = this.fallback(data, this);
         } else {
-          // If no fallback available, hide the emoji.
-          return this.isVisible.set(false);
+          return (this.isVisible = false);
         }
       } else {
-        // Generate styles for sprite-based emoji rendering.
         const styles = this.emojiService.emojiSpriteStyles(
           data.sheet,
-          this.set(),
-          this.size(),
-          this.sheetSize(),
-          this.sheetRows(),
-          this.backgroundImageFn(),
-          this.sheetColumns(),
-          this.imageUrlFn()?.(this.getData()),
+          this.set,
+          this.size,
+          this.sheetSize,
+          this.sheetRows,
+          this.backgroundImageFn,
+          this.sheetColumns,
+          this.imageUrlFn?.(this.getData()),
         );
         this.styles.set(styles);
       }
     }
-
-    // Emoji is valid and visible.
-    return this.isVisible.set(true);
+    return (this.isVisible = true);
   }
 
   getData() {
-    return this.emojiService.getData(this.emoji(), this.skin(), this.set());
+    return this.emojiService.getData(this.emoji, this.skin, this.set);
   }
 
   getSanitizedData(): EmojiData {
-    return this.emojiService.getSanitizedData(this.emoji(), this.skin(), this.set()) as EmojiData;
+    return this.emojiService.getSanitizedData(this.emoji, this.skin, this.set) as EmojiData;
   }
 
   protected handleClick($event: MouseEvent): void {
