@@ -6,15 +6,14 @@ import {
   Component,
   computed,
   ElementRef,
-  EventEmitter,
+  inject,
   Input,
   OnChanges,
   OnInit,
-  Output,
+  output,
   signal,
   SimpleChanges,
   viewChild,
-  ViewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Subject } from 'rxjs';
@@ -52,12 +51,9 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
   @Input() emojiImageUrlFn?: Emoji['imageUrlFn'];
   @Input() emojiUseButton?: boolean;
 
-  /**
-   * Note: the suffix is added explicitly so we know the event is dispatched outside of the Angular zone.
-   */
-  @Output() emojiOver: Emoji['emojiOver'] = new EventEmitter();
-  @Output() emojiLeave: Emoji['emojiLeave'] = new EventEmitter();
-  @Output() emojiClick: Emoji['emojiClick'] = new EventEmitter();
+  readonly emojiOver: Emoji['emojiOver'] = output();
+  readonly emojiLeave: Emoji['emojiLeave'] = output();
+  readonly emojiClick: Emoji['emojiClick'] = output();
 
   readonly container = viewChild.required<ElementRef<HTMLElement>>('container');
   readonly scrollSection = computed(() => {
@@ -72,7 +68,7 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
     return scrollSection;
   });
 
-  @ViewChild('label', { static: true }) label!: ElementRef;
+  readonly label = viewChild.required<ElementRef<HTMLElement>>('label');
 
   readonly containerStyles = signal<Record<string, string>>({});
   emojisToDisplay: any[] = [];
@@ -85,11 +81,9 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
   top = 0;
   rows = 0;
 
-  constructor(
-    public ref: ChangeDetectorRef,
-    private emojiService: EmojiService,
-    private frequently: EmojiFrequentlyService,
-  ) {}
+  readonly ref = inject(ChangeDetectorRef);
+  private emojiService = inject(EmojiService);
+  private frequently = inject(EmojiFrequentlyService);
 
   ngOnInit() {
     this.updateRecentEmojis();
@@ -139,7 +133,7 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
     const parent = this.scrollSection();
     const { top, height } = this.container().nativeElement.getBoundingClientRect();
     const parentTop = parent.getBoundingClientRect().top;
-    const labelHeight = this.label.nativeElement.getBoundingClientRect().height;
+    const labelHeight = this.label().nativeElement.getBoundingClientRect().height;
 
     this.top = top - parentTop + parent.scrollTop;
 
@@ -175,7 +169,7 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
     }
 
     if (!this.hasStickyPosition) {
-      this.label.nativeElement.style.top = `${margin}px`;
+      this.label().nativeElement.style.top = `${margin}px`;
     }
 
     this.margin = margin;

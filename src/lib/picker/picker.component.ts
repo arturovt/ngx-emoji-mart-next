@@ -4,12 +4,11 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  EventEmitter,
   inject,
   Input,
   NgZone,
   OnInit,
-  Output,
+  output,
   signal,
   viewChild,
   viewChildren,
@@ -106,9 +105,10 @@ export class PickerComponent implements OnInit {
   @Input() virtualize = false;
   @Input() virtualizeOffset = 0;
   @Input() recent?: string[];
-  @Output() emojiClick = new EventEmitter<any>();
-  @Output() emojiSelect = new EventEmitter<any>();
-  @Output() skinChange = new EventEmitter<Emoji['skin']>();
+
+  readonly emojiClick = output<any>();
+  readonly emojiSelect = output<any>();
+  readonly skinChange = output<Emoji['skin']>();
 
   readonly scrollRef = viewChild.required<ElementRef<HTMLElement>>('scrollRef');
   readonly previewRef = viewChild(PreviewComponent);
@@ -148,13 +148,13 @@ export class PickerComponent implements OnInit {
   backgroundImageFn: Emoji['backgroundImageFn'] = (set: string, sheetSize: number) =>
     `https://cdn.jsdelivr.net/npm/emoji-datasource-${set}@14.0.0/img/${set}/sheets-256/${sheetSize}.png`;
 
+  private ngZone = inject(NgZone);
+  private ref = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
 
-  constructor(
-    private ngZone: NgZone,
-    private ref: ChangeDetectorRef,
-    private frequently: EmojiFrequentlyService,
-  ) {
+  private frequently = inject(EmojiFrequentlyService);
+
+  constructor() {
     this.destroyRef.onDestroy(() => {
       // This is called here because the component might be destroyed
       // but there will still be a `requestAnimationFrame` callback in the queue

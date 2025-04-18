@@ -3,11 +3,10 @@ import {
   Component,
   DestroyRef,
   ElementRef,
-  EventEmitter,
   inject,
   Input,
   NgZone,
-  Output,
+  output,
   signal,
   viewChild,
 } from '@angular/core';
@@ -67,8 +66,8 @@ export class SearchComponent {
   @Input() icons!: { [key: string]: string };
   @Input() emojisToShowFilter?: (x: any) => boolean;
 
-  @Output() searchResults = new EventEmitter<any[]>();
-  @Output() enterKey = new EventEmitter<KeyboardEvent>();
+  readonly searchResults = output<any[]>();
+  readonly enterKey = output<KeyboardEvent>();
 
   readonly inputRef = viewChild.required<ElementRef<HTMLInputElement>>('inputRef');
 
@@ -80,10 +79,10 @@ export class SearchComponent {
 
   readonly inputId = `emoji-mart-search-${++id}`;
 
-  constructor(
-    private ngZone: NgZone,
-    private emojiSearch: EmojiSearch,
-  ) {
+  private ngZone = inject(NgZone);
+  private emojiSearch = inject(EmojiSearch);
+
+  constructor() {
     const destroyRef = inject(DestroyRef);
 
     afterNextRender(() => {

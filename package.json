@@ -10,12 +10,11 @@
     "build": "ng-packagr -p src/lib/picker/ng-package.json",
     "postbuild": "cpy README.md LICENSE dist",
     "build:integration:prod": "ng build --configuration production --no-progress",
-    "serve:integration:static": "serve dist -s -l 4200 --cors",
+    "serve:integration:static": "serve dist/browser -s -l 4200 --cors",
     "build-data": "tsx scripts/build-data.ts",
     "test": "ng test --watch=false",
     "test:watch": "ng test",
     "test:ci": "ng test --watch=false --code-coverage --no-progress --browsers=ChromeHeadlessCustom",
-    "link": "cd dist && npm link",
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
     "vercel": "ng build --configuration vercel",
@@ -49,7 +48,7 @@
     "@typescript-eslint/parser": "8.30.1",
     "cpy-cli": "4.2.0",
     "cross-env": "7.0.3",
-    "cypress": "14.3.0",
+    "cypress": "14.2.0",
     "del-cli": "5.0.0",
     "emoji-datasource": "14.0.0",
     "emojilib": "3.0.10",
@@ -66,7 +65,7 @@
     "prettier": "^3.5.3",
     "puppeteer": "24.6.1",
     "rxjs": "7.8.1",
-    "serve": "14.2.0",
+    "serve": "14.2.4",
     "start-server-and-test": "2.0.0",
     "stringify-object": "5.0.0",
     "tailwindcss": "3.3.2",
@@ -74,14 +73,5 @@
     "tsx": "3.12.7",
     "typescript": "5.8.3",
     "zone.js": "0.15.0"
-  },
-  "repository": "scttcper/ngx-emoji-mart",
-  "engines": {
-    "node": ">= 14"
-  },
-  "release": {
-    "branches": [
-      "master"
-    ]
   }
 }

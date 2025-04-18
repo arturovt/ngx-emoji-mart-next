@@ -1,11 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  EventEmitter,
-  Input,
-  Output,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, output, signal } from '@angular/core';
 
 import { Emoji } from 'ngx-emoji-mart-next/ngx-emoji';
 
@@ -40,7 +33,7 @@ export class SkinComponent {
   @Input() skin?: Emoji['skin'];
   @Input() i18n: any;
 
-  @Output() changeSkin = new EventEmitter<Emoji['skin']>();
+  readonly changeSkin = output<Emoji['skin']>();
 
   readonly opened = signal(false);
 

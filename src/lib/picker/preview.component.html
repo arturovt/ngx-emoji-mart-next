@@ -1,28 +1,31 @@
-@if (emoji && emojiData) {
+@let _emoji = emoji();
+@let _emojiData = emojiData();
+
+@if (_emoji && _emojiData) {
   <div class="emoji-mart-preview">
     <div class="emoji-mart-preview-emoji">
       <ngx-emoji
-        [emoji]="emoji"
+        [emoji]="_emoji"
         [size]="38"
-        [isNative]="emojiIsNative"
-        [skin]="emojiSkin"
-        [size]="emojiSize"
-        [set]="emojiSet"
-        [sheetSize]="emojiSheetSize"
-        [backgroundImageFn]="emojiBackgroundImageFn"
-        [imageUrlFn]="emojiImageUrlFn"
+        [isNative]="emojiIsNative()"
+        [skin]="emojiSkin()"
+        [size]="emojiSize()"
+        [set]="emojiSet()"
+        [sheetSize]="emojiSheetSize()"
+        [backgroundImageFn]="emojiBackgroundImageFn()"
+        [imageUrlFn]="emojiImageUrlFn()"
       />
     </div>
 
     <div class="emoji-mart-preview-data">
-      <div class="emoji-mart-preview-name">{{ emojiData.name }}</div>
+      <div class="emoji-mart-preview-name">{{ _emojiData.name }}</div>
       <div class="emoji-mart-preview-shortname">
-        @for (short_name of emojiData.shortNames; track short_name) {
+        @for (short_name of _emojiData.shortNames; track short_name) {
           <span class="emoji-mart-preview-shortname"> :{{ short_name }}: </span>
         }
       </div>
       <div class="emoji-mart-preview-emoticons">
-        @for (emoticon of listedEmoticons; track emoticon) {
+        @for (emoticon of listedEmoticons(); track emoticon) {
           <span class="emoji-mart-preview-emoticon">
             {{ emoticon }}
           </span>
@@ -32,26 +35,27 @@
   </div>
 }
 
-<div class="emoji-mart-preview" [hidden]="emoji">
+<div class="emoji-mart-preview" [hidden]="_emoji">
   <div class="emoji-mart-preview-emoji">
-    @if (idleEmoji && idleEmoji.length) {
+    @let _idleEmoji = idleEmoji();
+    @if (_idleEmoji && _idleEmoji.length) {
       <ngx-emoji
-        [isNative]="emojiIsNative"
-        [skin]="emojiSkin"
-        [set]="emojiSet"
-        [emoji]="idleEmoji"
-        [backgroundImageFn]="emojiBackgroundImageFn"
+        [isNative]="emojiIsNative()"
+        [skin]="emojiSkin()"
+        [set]="emojiSet()"
+        [emoji]="_idleEmoji"
+        [backgroundImageFn]="emojiBackgroundImageFn()"
         [size]="38"
-        [imageUrlFn]="emojiImageUrlFn"
+        [imageUrlFn]="emojiImageUrlFn()"
       />
     }
   </div>
 
   <div class="emoji-mart-preview-data">
-    <span class="emoji-mart-title-label">{{ title }}</span>
+    <span class="emoji-mart-title-label">{{ title() }}</span>
   </div>
 
   <div class="emoji-mart-preview-skins">
-    <emoji-skins [skin]="emojiSkin" (changeSkin)="skinChange.emit($event)" [i18n]="i18n" />
+    <emoji-skins [skin]="emojiSkin()" (changeSkin)="skinChange.emit($event)" [i18n]="i18n()" />
   </div>
 </div>

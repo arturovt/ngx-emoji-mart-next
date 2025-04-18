@@ -1,11 +1,11 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   Input,
   OnChanges,
-  Output,
+  OutputEmitterRef,
   inject,
+  output,
   signal,
 } from '@angular/core';
 
@@ -25,9 +25,9 @@ export interface Emoji {
   emoji: string | EmojiData;
   backgroundImageFn: (set: string, sheetSize: number) => string;
   fallback?: (data: any, props: any) => string;
-  emojiOver: EventEmitter<EmojiEvent>;
-  emojiLeave: EventEmitter<EmojiEvent>;
-  emojiClick: EventEmitter<EmojiEvent>;
+  emojiOver: OutputEmitterRef<EmojiEvent>;
+  emojiLeave: OutputEmitterRef<EmojiEvent>;
+  emojiClick: OutputEmitterRef<EmojiEvent>;
   imageUrlFn?: (emoji: EmojiData | null) => string;
 }
 
@@ -57,9 +57,9 @@ export class EmojiComponent implements OnChanges, Emoji {
   @Input() sheetColumns?: number;
   @Input() useButton?: boolean;
 
-  @Output() emojiOver: Emoji['emojiOver'] = new EventEmitter();
-  @Output() emojiLeave: Emoji['emojiLeave'] = new EventEmitter();
-  @Output() emojiClick: Emoji['emojiClick'] = new EventEmitter();
+  readonly emojiOver: Emoji['emojiOver'] = output();
+  readonly emojiLeave: Emoji['emojiLeave'] = output();
+  readonly emojiClick: Emoji['emojiClick'] = output();
 
   protected readonly styles = signal<Record<string, string | undefined>>({});
 
