@@ -20,7 +20,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { Observable, Subject } from 'rxjs';
 
-import { EmojiFrequentlyService } from './emoji-frequently.service';
+import { CUSTOM_EMOJI_KEY_PREFIX, EmojiFrequentlyService } from './emoji-frequently.service';
 
 @Component({
   selector: 'emoji-category',
@@ -265,16 +265,22 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
     }
     this.displayedEmojis.set(
       frequentlyUsed
-        .map(id => {
-          const emoji = this.custom().filter((e: any) => e.id === id)[0];
-          if (emoji) {
-            return emoji;
-          }
-
-          return id;
-        })
-        .filter(id => !!this.emojiService.getData(id)),
+        .map(key => this.getRecentEmoji(key))
+        .filter(emoji => !!emoji && !!this.emojiService.getData(emoji)),
     );
+  }
+
+  /**
+   * A key is the id of a standard emoji, or `custom:` and the id of a custom emoji. The plain id of
+   * a custom emoji also works when no standard emoji has this id.
+   */
+  private getRecentEmoji(key: string) {
+    const findCustom = (id: string) => this.custom().find((emoji: any) => emoji.id === id);
+
+    if (key.startsWith(CUSTOM_EMOJI_KEY_PREFIX)) {
+      return findCustom(key.slice(CUSTOM_EMOJI_KEY_PREFIX.length));
+    }
+    return this.emojiService.getData(key) ? key : findCustom(key);
   }
 
   updateDisplay(display: 'none' | 'block') {

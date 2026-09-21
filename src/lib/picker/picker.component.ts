@@ -476,9 +476,10 @@ export class PickerComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const emojiData = this.CUSTOM_CATEGORY.emojis!.find(
-      (customEmoji: any) => customEmoji.id === $event.emoji.id,
-    );
+    // A standard emoji can have the same id as a custom emoji.
+    const emojiData = $event.emoji.custom
+      ? this.CUSTOM_CATEGORY.emojis!.find((customEmoji: any) => customEmoji.id === $event.emoji.id)
+      : undefined;
     if (emojiData) {
       $event.emoji = { ...emojiData };
     }

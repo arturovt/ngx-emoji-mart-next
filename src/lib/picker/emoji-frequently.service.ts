@@ -3,6 +3,12 @@ import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 
 import { EmojiData } from 'ngx-emoji-mart-next/ngx-emoji';
 
+/**
+ * The key of a custom emoji starts with this text. This keeps a custom emoji apart from a
+ * standard emoji that has the same id.
+ */
+export const CUSTOM_EMOJI_KEY_PREFIX = 'custom:';
+
 @Injectable({ providedIn: 'root' })
 export class EmojiFrequentlyService {
   private platformId = inject(PLATFORM_ID);
@@ -44,13 +50,14 @@ export class EmojiFrequentlyService {
     if (!this.frequently) {
       this.frequently = this.defaults;
     }
-    if (!this.frequently[emoji.id]) {
-      this.frequently[emoji.id] = 0;
+    const key = emoji.custom ? `${CUSTOM_EMOJI_KEY_PREFIX}${emoji.id}` : emoji.id;
+    if (!this.frequently[key]) {
+      this.frequently[key] = 0;
     }
-    this.frequently[emoji.id] += 1;
+    this.frequently[key] += 1;
 
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem(`${this.NAMESPACE}.last`, emoji.id);
+      localStorage.setItem(`${this.NAMESPACE}.last`, key);
       localStorage.setItem(`${this.NAMESPACE}.frequently`, JSON.stringify(this.frequently));
     }
   }

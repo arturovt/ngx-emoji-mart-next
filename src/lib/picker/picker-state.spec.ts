@@ -304,7 +304,12 @@ describe('PickerComponent state', () => {
     it('should render a custom emoji that has the short name of a standard emoji', async () => {
       const fixture = createPicker('<emoji-mart [custom]="custom"></emoji-mart>', {
         custom: [
-          { name: 'Party Parrot', shortNames: ['parrot'], keywords: ['party'], imageUrl: './parrot.gif' },
+          {
+            name: 'Party Parrot',
+            shortNames: ['parrot'],
+            keywords: ['party'],
+            imageUrl: './parrot.gif',
+          },
         ],
       });
       await settle(fixture);
@@ -317,6 +322,62 @@ describe('PickerComponent state', () => {
       expect((parrot.firstElementChild as HTMLElement).style.backgroundImage).toContain(
         'parrot.gif',
       );
+    });
+  });
+
+  describe('custom and standard emojis with the same id', () => {
+    const custom = [
+      {
+        name: 'Party Parrot',
+        shortNames: ['parrot'],
+        keywords: ['party'],
+        imageUrl: './parrot.gif',
+      },
+    ];
+    const template = '<emoji-mart [custom]="custom"></emoji-mart>';
+    const parrots = (fixture: ComponentFixture<unknown>) =>
+      all(fixture, '.emoji-mart-category .emoji-mart-emoji').filter(element =>
+        /(^|, )parrot$/.test(element.getAttribute('aria-label') ?? ''),
+      );
+    const isCustom = (element: HTMLElement) =>
+      element.classList.contains('emoji-mart-emoji-custom');
+    const previewName = (fixture: ComponentFixture<unknown>) =>
+      one(
+        fixture,
+        '.emoji-mart-preview:not([hidden]) .emoji-mart-preview-name',
+      ).textContent!.trim();
+
+    it('should show the emoji that is hovered in the preview', async () => {
+      const fixture = createPicker(template, { custom });
+      await settle(fixture);
+      const standard = parrots(fixture).find(element => !isCustom(element))!;
+      const party = parrots(fixture).find(isCustom)!;
+
+      standard.dispatchEvent(new MouseEvent('mouseenter'));
+      fixture.detectChanges();
+      expect(previewName(fixture)).toBe('Parrot');
+
+      standard.dispatchEvent(new MouseEvent('mouseleave'));
+      party.dispatchEvent(new MouseEvent('mouseenter'));
+      fixture.detectChanges();
+      expect(previewName(fixture)).toBe('Party Parrot');
+    });
+
+    it('should remember each of them in the recent category', async () => {
+      const first = createPicker(template, { custom });
+      await settle(first);
+      parrots(first).find(isCustom)!.click();
+      parrots(first).find(element => !isCustom(element))!.click();
+
+      const second = createPicker(template, { custom });
+      await settle(second);
+      const recent = one(second, '.emoji-mart-category-label[data-name="Recent"]')
+        .parentElement as HTMLElement;
+      const recentParrots = Array.from(recent.querySelectorAll('.emoji-mart-emoji')).filter(
+        element => /(^|, )parrot$/.test(element.getAttribute('aria-label') ?? ''),
+      ) as HTMLElement[];
+
+      expect(recentParrots.map(isCustom).sort()).toEqual([false, true]);
     });
   });
 

@@ -118,4 +118,79 @@ describe('CategoryComponent', () => {
 
     expect(category.labelStyles()).toEqual({ height: 28 });
   });
+
+  describe('recent emojis', () => {
+    @Component({
+      template: `
+        <emoji-category
+          id="recent"
+          name="Recent"
+          [i18n]="i18n"
+          [recent]="recent"
+          [custom]="custom"
+          [notFoundEmoji]="'sleuth_or_spy'"
+          [emojiIsNative]="true"
+          [emojiSkin]="1"
+          [emojiSize]="24"
+          [emojiSet]="'apple'"
+          [emojiSheetSize]="64"
+          [emojiForceSize]="false"
+          [emojiTooltip]="false"
+          [emojiBackgroundImageFn]="backgroundImageFn"
+        />
+      `,
+      imports: [CategoryComponent],
+    })
+    class RecentHostComponent {
+      i18n = { categories: { recent: 'Recent' }, notfound: 'Nothing here' };
+      recent: string[] = [];
+      custom: any[] = [];
+      backgroundImageFn = () => '';
+    }
+
+    const customParrot = {
+      id: 'parrot',
+      name: 'Party Parrot',
+      shortNames: ['parrot'],
+      keywords: ['party'],
+      imageUrl: './parrot.gif',
+      custom: true,
+    };
+    const customOctocat = { ...customParrot, id: 'octocat', shortNames: ['octocat'] };
+
+    function createRecent(recent: string[]) {
+      const fixture = TestBed.createComponent(RecentHostComponent);
+      fixture.componentInstance.recent = recent;
+      fixture.componentInstance.custom = [customParrot, customOctocat];
+      fixture.detectChanges();
+      return Array.from(
+        fixture.nativeElement.querySelectorAll('.emoji-mart-emoji') as NodeListOf<HTMLElement>,
+      ).map(element => ({
+        custom: element.classList.contains('emoji-mart-emoji-custom'),
+        label: element.getAttribute('aria-label'),
+      }));
+    }
+
+    it('should tell a custom emoji from a standard emoji that has the same id', () => {
+      const emojis = createRecent(['custom:parrot', 'parrot']);
+
+      expect(emojis.length).toBe(2);
+      expect(emojis[0].custom).toBe(true);
+      expect(emojis[1].custom).toBe(false);
+      expect(emojis[1].label).toContain('parrot');
+      expect(emojis[1].label).toContain('🦜');
+    });
+
+    it('should find a custom emoji by its plain id when there is no standard emoji', () => {
+      const emojis = createRecent(['octocat', '+1']);
+
+      expect(emojis.length).toBe(2);
+      expect(emojis[0].custom).toBe(true);
+      expect(emojis[1].label).toContain('thumbsup');
+    });
+
+    it('should skip a custom emoji that does not exist', () => {
+      expect(createRecent(['custom:unknown', '+1']).length).toBe(1);
+    });
+  });
 });

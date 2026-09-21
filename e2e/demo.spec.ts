@@ -40,6 +40,23 @@ test.describe('Demo app', () => {
     await expect(picker).toHaveClass(/emoji-mart-dark/);
   });
 
+  test('should remember a clicked custom emoji in the recent category', async ({ page }) => {
+    const category = (name: string) =>
+      page
+        .locator('section.emoji-mart-category')
+        .filter({ has: page.locator(`[data-name="${name}"]`) });
+
+    // "Party Parrot" has the short name of a standard emoji. The recent category must show the
+    // custom emoji and not the standard one.
+    await category('Custom').locator('.emoji-mart-emoji').first().click();
+
+    await page.reload();
+
+    const recent = category('Recent').locator('.emoji-mart-emoji.emoji-mart-emoji-custom');
+    await expect(recent).toHaveCount(1);
+    await expect(recent.locator('span').first()).toHaveCSS('background-image', /parrot\.gif/);
+  });
+
   test('should render the custom emojis', async ({ page }) => {
     const custom = page
       .locator('section.emoji-mart-category')

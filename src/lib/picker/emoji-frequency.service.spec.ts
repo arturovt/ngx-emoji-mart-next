@@ -1,6 +1,6 @@
 import { inject, TestBed } from '@angular/core/testing';
 
-import { EmojiService } from 'ngx-emoji-mart-next/ngx-emoji';
+import { EmojiData, EmojiService } from 'ngx-emoji-mart-next/ngx-emoji';
 import { EmojiFrequentlyService } from './emoji-frequently.service';
 
 describe('EmojiFrequently', () => {
@@ -37,5 +37,19 @@ describe('EmojiFrequently', () => {
         expect(result.length).toEqual(9);
       },
     ),
+  );
+
+  it(
+    'should count a custom emoji and a standard emoji with the same id separately',
+    inject([EmojiFrequentlyService], (ef: EmojiFrequentlyService) => {
+      ef.add({ id: 'parrot' } as EmojiData);
+      ef.add({ id: 'parrot', custom: true } as EmojiData);
+      ef.add({ id: 'parrot', custom: true } as EmojiData);
+
+      const stored = JSON.parse(localStorage.getItem('emoji-mart.frequently')!);
+      expect(stored['parrot']).toBe(1);
+      expect(stored['custom:parrot']).toBe(2);
+      expect(localStorage.getItem('emoji-mart.last')).toBe('custom:parrot');
+    }),
   );
 });
