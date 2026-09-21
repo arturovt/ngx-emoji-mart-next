@@ -32,8 +32,11 @@ jobs:
       - name: Build integration app
         run: pnpm run build:integration:prod
 
-      - name: Run Cypress
-        run: pnpm run e2e:ci
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run e2e tests
+        run: pnpm run e2e
 
       - name: coverage
         uses: codecov/codecov-action@v3

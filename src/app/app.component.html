@@ -73,7 +73,7 @@
 
 <!--
   We should be rendering `app-footer` only when we deploy to Vercel.
-  There's no reason to render it locally or when running Cypress tests
+  There's no reason to render it locally or when running e2e tests
   since it makes HTTP requests to get GH stats.
 -->
 <app-footer *ngIf="environment.vercel"></app-footer>
