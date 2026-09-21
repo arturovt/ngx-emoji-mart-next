@@ -1,8 +1,6 @@
 allowBuilds:
   '@parcel/watcher': false
-  core-js: false
   esbuild: true
   lmdb: false
   msgpackr-extract: false
-  nice-napi: false
   nx: false
