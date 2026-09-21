@@ -26,14 +26,14 @@ jobs:
       - name: Build library
         run: pnpm run build
 
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
       - name: Run unit tests
         run: pnpm run test:ci
 
       - name: Build integration app
         run: pnpm run build:integration:prod
-
-      - name: Install Playwright browser
-        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run e2e tests
         run: pnpm run e2e

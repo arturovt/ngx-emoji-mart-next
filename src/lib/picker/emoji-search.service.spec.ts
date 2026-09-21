@@ -1,12 +1,12 @@
-import { inject, TestBed, waitForAsync } from '@angular/core/testing';
+import { inject, TestBed } from '@angular/core/testing';
 
 import { EmojiData } from 'ngx-emoji-mart-next/ngx-emoji';
 import { EmojiSearch } from './emoji-search.service';
 
 describe('EmojiSearch', () => {
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({}).compileComponents();
-  }));
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({}).compileComponents();
+  });
 
   it('should return nothing', inject([EmojiSearch], (es: EmojiSearch) => {
     expect(es.search('')).toEqual(null);

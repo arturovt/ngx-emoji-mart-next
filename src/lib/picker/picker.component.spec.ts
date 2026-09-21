@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { ComponentFixture, TestBed, fakeAsync, tick, waitForAsync } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PickerModule } from './picker.module';
 import { PickerComponent } from './picker.component';
+import { frame, timeout } from './testing-utils';
 
 describe('PickerComponent', () => {
   @Component({
@@ -16,11 +17,11 @@ describe('PickerComponent', () => {
   let component: TestComponent;
   let fixture: ComponentFixture<TestComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [TestComponent],
     }).compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(TestComponent);
@@ -28,7 +29,7 @@ describe('PickerComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should update preview on `mouseenter` and `mouseleave` but should not trigger change detection', fakeAsync(() => {
+  it('should update preview on `mouseenter` and `mouseleave` but should not trigger change detection', async () => {
     const picker = fixture.debugElement.query(By.directive(PickerComponent));
     expect(picker.componentInstance.previewEmoji).toEqual(null);
 
@@ -44,9 +45,13 @@ describe('PickerComponent', () => {
 
     emoji.dispatchEvent(new MouseEvent('mouseleave'));
 
-    // `requestAnimationFrame` is `setTimeout(fn, 16)` in unit tests.
-    tick(16);
+    // The preview is cleared in an animation frame.
+    await frame();
 
     expect(picker.componentInstance.previewEmoji).toEqual(null);
-  }));
+
+    // Let the picker finish the timers that it started when it was created.
+    await timeout();
+    await frame();
+  });
 });

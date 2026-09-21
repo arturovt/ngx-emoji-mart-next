@@ -1,0 +1,51 @@
+import { expect, test } from './fixtures';
+
+test.describe('Demo app', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+  });
+
+  test('should render native emojis by default and sheet emojis for a theme', async ({ page }) => {
+    const emoji = page.locator('.emoji-mart-scroll .emoji-mart-emoji').first();
+
+    await expect(emoji).toHaveClass(/emoji-mart-emoji-native/);
+
+    await page.getByRole('button', { name: 'apple', exact: true }).click();
+
+    await expect(page.getByRole('button', { name: 'apple', exact: true })).toHaveClass(
+      /bg-indigo-600/,
+    );
+    await expect(emoji).not.toHaveClass(/emoji-mart-emoji-native/);
+    await expect(emoji.locator('span').first()).toHaveCSS(
+      'background-image',
+      /emoji-datasource-apple/,
+    );
+
+    await page.getByRole('button', { name: 'native', exact: true }).click();
+
+    await expect(emoji).toHaveClass(/emoji-mart-emoji-native/);
+  });
+
+  test('should switch dark mode', async ({ page }) => {
+    const picker = page.locator('emoji-mart .emoji-mart');
+
+    await page.getByRole('button', { name: 'dark', exact: true }).click();
+    await expect(picker).toHaveClass(/emoji-mart-dark/);
+
+    await page.getByRole('button', { name: 'light', exact: true }).click();
+    await expect(picker).not.toHaveClass(/emoji-mart-dark/);
+
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.getByRole('button', { name: 'auto', exact: true }).click();
+    await expect(picker).toHaveClass(/emoji-mart-dark/);
+  });
+
+  test('should render the custom emojis', async ({ page }) => {
+    const custom = page
+      .locator('section.emoji-mart-category')
+      .filter({ has: page.locator('[data-name="Custom"]') });
+
+    await expect(page.locator('.emoji-mart-anchor[title="Custom"]')).toBeVisible();
+    await expect(custom.locator('.emoji-mart-emoji')).toHaveCount(3);
+  });
+});
