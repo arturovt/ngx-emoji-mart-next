@@ -300,6 +300,26 @@ describe('PickerComponent state', () => {
     });
   });
 
+  describe('custom emojis', () => {
+    it('should render a custom emoji that has the short name of a standard emoji', async () => {
+      const fixture = createPicker('<emoji-mart [custom]="custom"></emoji-mart>', {
+        custom: [
+          { name: 'Party Parrot', shortNames: ['parrot'], keywords: ['party'], imageUrl: './parrot.gif' },
+        ],
+      });
+      await settle(fixture);
+
+      const category = one(fixture, '.emoji-mart-category-label[data-name="Custom"]')
+        .parentElement as HTMLElement;
+      const parrot = category.querySelector('.emoji-mart-emoji') as HTMLElement;
+
+      expect(parrot.classList.contains('emoji-mart-emoji-custom')).toBe(true);
+      expect((parrot.firstElementChild as HTMLElement).style.backgroundImage).toContain(
+        'parrot.gif',
+      );
+    });
+  });
+
   describe('preview', () => {
     const idleTitle = (fixture: ComponentFixture<unknown>) =>
       one(fixture, '.emoji-mart-title-label').textContent!.trim();

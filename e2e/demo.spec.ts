@@ -47,5 +47,10 @@ test.describe('Demo app', () => {
 
     await expect(page.locator('.emoji-mart-anchor[title="Custom"]')).toBeVisible();
     await expect(custom.locator('.emoji-mart-emoji')).toHaveCount(3);
+
+    // "Party Parrot" has the short name of a standard emoji, but it must show the custom image.
+    const parrot = custom.locator('.emoji-mart-emoji').first();
+    await expect(parrot).toHaveClass(/emoji-mart-emoji-custom/);
+    await expect(parrot.locator('span').first()).toHaveCSS('background-image', /parrot\.gif/);
   });
 });

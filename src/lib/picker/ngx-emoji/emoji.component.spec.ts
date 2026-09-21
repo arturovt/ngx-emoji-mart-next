@@ -73,6 +73,22 @@ describe('EmojiComponent', () => {
     expect(inner(fixture).style.width).toBe('30px');
   });
 
+  it('should render a custom emoji that has the id of a standard emoji', () => {
+    const fixture = createEmoji('<ngx-emoji [emoji]="custom" [size]="30"/>', {
+      custom: {
+        id: 'parrot',
+        name: 'Party Parrot',
+        shortNames: ['parrot'],
+        keywords: ['party'],
+        imageUrl: './parrot.gif',
+        custom: true,
+      },
+    });
+
+    expect(emoji(fixture)!.classList.contains('emoji-mart-emoji-custom')).toBe(true);
+    expect(inner(fixture).style.backgroundImage).toContain('parrot.gif');
+  });
+
   it('should show the short name as the title only with `tooltip`', () => {
     const withTooltip = createEmoji('<ngx-emoji emoji="+1" [tooltip]="true"/>');
     const withoutTooltip = createEmoji('<ngx-emoji emoji="+1"/>');

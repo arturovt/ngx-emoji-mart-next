@@ -88,7 +88,8 @@ export class EmojiService {
       } else {
         return null;
       }
-    } else if (emoji.id) {
+    } else if (emoji.id && !emoji.custom) {
+      // A custom emoji can have the same id as a standard emoji.
       emojiData = this.names[emoji.id];
     } else if (emoji.unified) {
       emojiData = this.names[emoji.unified.toUpperCase()];
