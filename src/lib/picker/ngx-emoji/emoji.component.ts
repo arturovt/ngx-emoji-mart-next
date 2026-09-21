@@ -3,13 +3,13 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  Input,
   NgZone,
   OnChanges,
   OnDestroy,
   Output,
   ViewChild,
   inject,
+  input,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EMPTY, Subject, fromEvent, switchMap, takeUntil } from 'rxjs';
@@ -46,17 +46,17 @@ export interface EmojiEvent {
   template: `
     <ng-template [ngIf]="isVisible">
       <button
-        *ngIf="useButton; else spanTpl"
+        *ngIf="useButton(); else spanTpl"
         #button
         type="button"
         [attr.title]="title"
         [attr.aria-label]="label"
         class="emoji-mart-emoji"
-        [class.emoji-mart-emoji-native]="isNative"
+        [class.emoji-mart-emoji-native]="isNative()"
         [class.emoji-mart-emoji-custom]="custom"
       >
         <span [ngStyle]="style">
-          <ng-template [ngIf]="isNative">{{ unified }}</ng-template>
+          <ng-template [ngIf]="isNative()">{{ unified }}</ng-template>
           <ng-content></ng-content>
         </span>
       </button>
@@ -68,11 +68,11 @@ export interface EmojiEvent {
         [attr.title]="title"
         [attr.aria-label]="label"
         class="emoji-mart-emoji"
-        [class.emoji-mart-emoji-native]="isNative"
+        [class.emoji-mart-emoji-native]="isNative()"
         [class.emoji-mart-emoji-custom]="custom"
       >
         <span [ngStyle]="style">
-          <ng-template [ngIf]="isNative">{{ unified }}</ng-template>
+          <ng-template [ngIf]="isNative()">{{ unified }}</ng-template>
           <ng-content></ng-content>
         </span>
       </span>
@@ -82,21 +82,21 @@ export interface EmojiEvent {
   preserveWhitespaces: false,
   imports: [CommonModule],
 })
-export class EmojiComponent implements OnChanges, Emoji, OnDestroy {
-  @Input() skin: Emoji['skin'] = 1;
-  @Input() set: Emoji['set'] = 'apple';
-  @Input() sheetSize: Emoji['sheetSize'] = 64;
+export class EmojiComponent implements OnChanges, OnDestroy {
+  readonly skin = input<Emoji['skin']>(1);
+  readonly set = input<Emoji['set']>('apple');
+  readonly sheetSize = input<Emoji['sheetSize']>(64);
   /** Renders the native unicode emoji */
-  @Input() isNative: Emoji['isNative'] = false;
-  @Input() forceSize: Emoji['forceSize'] = false;
-  @Input() tooltip: Emoji['tooltip'] = false;
-  @Input() size: Emoji['size'] = 24;
-  @Input() emoji: Emoji['emoji'] = '';
-  @Input() fallback?: Emoji['fallback'];
-  @Input() hideObsolete = false;
-  @Input() sheetRows?: number;
-  @Input() sheetColumns?: number;
-  @Input() useButton?: boolean;
+  readonly isNative = input<Emoji['isNative']>(false);
+  readonly forceSize = input<Emoji['forceSize']>(false);
+  readonly tooltip = input<Emoji['tooltip']>(false);
+  readonly size = input<Emoji['size']>(24);
+  readonly emoji = input<Emoji['emoji']>('');
+  readonly fallback = input<Emoji['fallback']>();
+  readonly hideObsolete = input(false);
+  readonly sheetRows = input<number>();
+  readonly sheetColumns = input<number>();
+  readonly useButton = input<boolean>();
   /**
    * Note: `emojiOver` and `emojiOverOutsideAngular` are dispatched on the same event (`mouseenter`), but
    *       for different purposes. The `emojiOverOutsideAngular` event is listened only in `emoji-category`
@@ -118,8 +118,8 @@ export class EmojiComponent implements OnChanges, Emoji, OnDestroy {
   custom = false;
   isVisible = true;
   // TODO: replace 4.0.3 w/ dynamic get verison from emoji-datasource in package.json
-  @Input() backgroundImageFn: Emoji['backgroundImageFn'] = DEFAULT_BACKGROUNDFN;
-  @Input() imageUrlFn?: Emoji['imageUrlFn'];
+  readonly backgroundImageFn = input<Emoji['backgroundImageFn']>(DEFAULT_BACKGROUNDFN);
+  readonly imageUrlFn = input<Emoji['imageUrlFn']>();
 
   @ViewChild('button', { static: false })
   set button(button: ElementRef<HTMLElement> | undefined) {
@@ -145,7 +145,7 @@ export class EmojiComponent implements OnChanges, Emoji, OnDestroy {
   }
 
   ngOnChanges() {
-    if (!this.emoji) {
+    if (!this.emoji()) {
       return (this.isVisible = false);
     }
     const data = this.getData();
@@ -160,37 +160,39 @@ export class EmojiComponent implements OnChanges, Emoji, OnDestroy {
     if (!data.unified && !data.custom) {
       return (this.isVisible = false);
     }
-    if (this.tooltip) {
+    if (this.tooltip()) {
       this.title = data.shortNames[0];
     }
-    if (data.obsoletedBy && this.hideObsolete) {
+    if (data.obsoletedBy && this.hideObsolete()) {
       return (this.isVisible = false);
     }
 
     this.label = [data.native].concat(data.shortNames).filter(Boolean).join(', ');
 
-    if (this.isNative && data.unified && data.native) {
+    if (this.isNative() && data.unified && data.native) {
       // hide older emoji before the split into gendered emoji
-      this.style = { fontSize: `${this.size}px` };
+      this.style = { fontSize: `${this.size()}px` };
 
-      if (this.forceSize) {
+      if (this.forceSize()) {
         this.style.display = 'inline-block';
-        this.style.width = `${this.size}px`;
-        this.style.height = `${this.size}px`;
+        this.style.width = `${this.size()}px`;
+        this.style.height = `${this.size()}px`;
         this.style['word-break'] = 'keep-all';
       }
     } else if (data.custom) {
       this.style = {
-        width: `${this.size}px`,
-        height: `${this.size}px`,
+        width: `${this.size()}px`,
+        height: `${this.size()}px`,
         display: 'inline-block',
       };
-      if (data.spriteUrl && this.sheetRows && this.sheetColumns) {
+      const sheetColumns = this.sheetColumns();
+      const sheetRows = this.sheetRows();
+      if (data.spriteUrl && sheetRows && sheetColumns) {
         this.style = {
           ...this.style,
           backgroundImage: `url(${data.spriteUrl})`,
-          backgroundSize: `${100 * this.sheetColumns}% ${100 * this.sheetRows}%`,
-          backgroundPosition: this.emojiService.getSpritePosition(data.sheet, this.sheetColumns),
+          backgroundSize: `${100 * sheetColumns}% ${100 * sheetRows}%`,
+          backgroundPosition: this.emojiService.getSpritePosition(data.sheet, sheetColumns),
         };
       } else {
         this.style = {
@@ -200,23 +202,25 @@ export class EmojiComponent implements OnChanges, Emoji, OnDestroy {
         };
       }
     } else {
-      if (data.hidden.length && data.hidden.includes(this.set)) {
-        if (this.fallback) {
-          this.style = { fontSize: `${this.size}px` };
-          this.unified = this.fallback(data, this);
+      const set = this.set();
+      if (data.hidden.length && data.hidden.includes(set)) {
+        const fallback = this.fallback();
+        if (fallback) {
+          this.style = { fontSize: `${this.size()}px` };
+          this.unified = fallback(data, this);
         } else {
           return (this.isVisible = false);
         }
       } else {
         this.style = this.emojiService.emojiSpriteStyles(
           data.sheet,
-          this.set,
-          this.size,
-          this.sheetSize,
-          this.sheetRows,
-          this.backgroundImageFn,
-          this.sheetColumns,
-          this.imageUrlFn?.(this.getData()),
+          set,
+          this.size(),
+          this.sheetSize(),
+          this.sheetRows(),
+          this.backgroundImageFn(),
+          this.sheetColumns(),
+          this.imageUrlFn()?.(this.getData()),
         );
       }
     }
@@ -228,11 +232,11 @@ export class EmojiComponent implements OnChanges, Emoji, OnDestroy {
   }
 
   getData() {
-    return this.emojiService.getData(this.emoji, this.skin, this.set);
+    return this.emojiService.getData(this.emoji(), this.skin(), this.set());
   }
 
   getSanitizedData(): EmojiData {
-    return this.emojiService.getSanitizedData(this.emoji, this.skin, this.set) as EmojiData;
+    return this.emojiService.getSanitizedData(this.emoji(), this.skin(), this.set()) as EmojiData;
   }
 
   private setupMouseListeners(): void {

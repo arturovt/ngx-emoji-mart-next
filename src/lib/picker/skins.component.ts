@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, input } from '@angular/core';
 
 import { Emoji } from 'ngx-emoji-mart-next/ngx-emoji';
 
@@ -10,7 +10,7 @@ import { Emoji } from 'ngx-emoji-mart-next/ngx-emoji';
       <span
         *ngFor="let skinTone of skinTones"
         class="emoji-mart-skin-swatch"
-        [class.selected]="skinTone === skin"
+        [class.selected]="skinTone === skin()"
       >
         <span
           (click)="handleClick(skinTone)"
@@ -23,8 +23,8 @@ import { Emoji } from 'ngx-emoji-mart-next/ngx-emoji';
           [attr.aria-pressed]="pressed(skinTone)"
           [attr.aria-haspopup]="!!isSelected(skinTone)"
           [attr.aria-expanded]="expanded(skinTone)"
-          [attr.aria-label]="i18n.skintones[skinTone]"
-          [attr.title]="i18n.skintones[skinTone]"
+          [attr.aria-label]="i18n().skintones[skinTone]"
+          [attr.title]="i18n().skintones[skinTone]"
         ></span>
       </span>
     </section>
@@ -35,8 +35,8 @@ import { Emoji } from 'ngx-emoji-mart-next/ngx-emoji';
 })
 export class SkinComponent {
   /** currently selected skin */
-  @Input() skin?: Emoji['skin'];
-  @Input() i18n: any;
+  readonly skin = input<Emoji['skin']>();
+  readonly i18n = input<any>();
   @Output() changeSkin = new EventEmitter<Emoji['skin']>();
   opened = false;
   skinTones: Emoji['skin'][] = [1, 2, 3, 4, 5, 6];
@@ -46,7 +46,7 @@ export class SkinComponent {
   }
 
   isSelected(skinTone: Emoji['skin']): boolean {
-    return skinTone === this.skin;
+    return skinTone === this.skin();
   }
 
   isVisible(skinTone: Emoji['skin']): boolean {
@@ -71,7 +71,7 @@ export class SkinComponent {
       return;
     }
     this.opened = false;
-    if (skin !== this.skin) {
+    if (skin !== this.skin()) {
       this.changeSkin.emit(skin);
     }
   }

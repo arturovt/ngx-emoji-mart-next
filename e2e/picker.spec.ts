@@ -1,8 +1,14 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test.describe('Emoji picker', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
+  });
+
+  test('should run with zone.js only when it is not zoneless', async ({ page, zoneless }) => {
+    const hasZone = await page.evaluate(() => 'Zone' in window);
+
+    expect(hasZone).toBe(!zoneless);
   });
 
   test('should render list of emojis', async ({ page }) => {

@@ -3,13 +3,14 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  Input,
   NgZone,
   OnDestroy,
   OnInit,
   Output,
   ViewChild,
-  ChangeDetectionStrategy,
+  computed,
+  input,
+  signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -26,8 +27,8 @@ let id = 0;
         [id]="inputId"
         #inputRef
         type="search"
-        [placeholder]="i18n.search"
-        [autofocus]="autoFocus"
+        [placeholder]="i18n().search"
+        [autofocus]="autoFocus()"
         [(ngModel)]="query"
         (ngModelChange)="handleChange()"
       />
@@ -36,15 +37,15 @@ let id = 0;
       http://www.maxability.co.in/2016/01/placeholder-attribute-and-why-it-is-not-accessible/
       -->
       <label class="emoji-mart-sr-only" [htmlFor]="inputId">
-        {{ i18n.search }}
+        {{ i18n().search }}
       </label>
       <button
         type="button"
         class="emoji-mart-search-icon"
         (click)="clear()"
         (keyup.enter)="clear()"
-        [disabled]="!isSearching"
-        [attr.aria-label]="i18n.clear"
+        [disabled]="!isSearching()"
+        [attr.aria-label]="i18n().clear"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -53,29 +54,30 @@ let id = 0;
           height="13"
           opacity="0.5"
         >
-          <path [attr.d]="icon" />
+          <path [attr.d]="icon()" />
         </svg>
       </button>
     </div>
   `,
   preserveWhitespaces: false,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FormsModule],
 })
 export class SearchComponent implements AfterViewInit, OnInit, OnDestroy {
-  @Input() maxResults = 75;
-  @Input() autoFocus = false;
-  @Input() i18n: any;
-  @Input() include: string[] = [];
-  @Input() exclude: string[] = [];
-  @Input() custom: any[] = [];
-  @Input() icons!: { [key: string]: string };
-  @Input() emojisToShowFilter?: (x: any) => boolean;
+  readonly maxResults = input(75);
+  readonly autoFocus = input(false);
+  readonly i18n = input<any>();
+  readonly include = input<string[]>([]);
+  readonly exclude = input<string[]>([]);
+  readonly custom = input<any[]>([]);
+  readonly icons = input.required<{ [key: string]: string }>();
+  readonly emojisToShowFilter = input<(x: any) => boolean>();
   @Output() searchResults = new EventEmitter<any[]>();
   @Output() enterKeyOutsideAngular = new EventEmitter<KeyboardEvent>();
   @ViewChild('inputRef', { static: true }) private inputRef!: ElementRef<HTMLInputElement>;
-  isSearching = false;
-  icon?: string;
+  readonly isSearching = signal(false);
+  readonly icon = computed(() =>
+    this.isSearching() ? this.icons().delete : this.icons().search,
+  );
   query = '';
   inputId = `emoji-mart-search-${++id}`;
 
@@ -84,12 +86,11 @@ export class SearchComponent implements AfterViewInit, OnInit, OnDestroy {
   constructor(private ngZone: NgZone, private emojiSearch: EmojiSearch) {}
 
   ngOnInit() {
-    this.icon = this.icons.search;
     this.setupKeyupListener();
   }
 
   ngAfterViewInit() {
-    if (this.autoFocus) {
+    if (this.autoFocus()) {
       this.inputRef.nativeElement.focus();
     }
   }
@@ -105,20 +106,14 @@ export class SearchComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   handleSearch(value: string) {
-    if (value === '') {
-      this.icon = this.icons.search;
-      this.isSearching = false;
-    } else {
-      this.icon = this.icons.delete;
-      this.isSearching = true;
-    }
+    this.isSearching.set(value !== '');
     const emojis = this.emojiSearch.search(
       this.query,
-      this.emojisToShowFilter,
-      this.maxResults,
-      this.include,
-      this.exclude,
-      this.custom,
+      this.emojisToShowFilter(),
+      this.maxResults(),
+      this.include(),
+      this.exclude(),
+      this.custom(),
     ) as any[];
     this.searchResults.emit(emojis);
   }

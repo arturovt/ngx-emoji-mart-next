@@ -1,12 +1,11 @@
 import { Emoji, EmojiComponent, EmojiData, EmojiService } from 'ngx-emoji-mart-next/ngx-emoji';
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   EventEmitter,
-  Input,
-  OnChanges,
   Output,
+  computed,
+  input,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -15,62 +14,62 @@ import { SkinComponent } from './skins.component';
 @Component({
   selector: 'emoji-preview',
   template: `
-    <div class="emoji-mart-preview" *ngIf="emoji && emojiData">
+    <div class="emoji-mart-preview" *ngIf="emoji() && emojiData()">
       <div class="emoji-mart-preview-emoji">
         <ngx-emoji
-          [emoji]="emoji"
+          [emoji]="emoji()"
           [size]="38"
-          [isNative]="emojiIsNative"
-          [skin]="emojiSkin"
-          [size]="emojiSize"
-          [set]="emojiSet"
-          [sheetSize]="emojiSheetSize"
-          [backgroundImageFn]="emojiBackgroundImageFn"
-          [imageUrlFn]="emojiImageUrlFn"
+          [isNative]="emojiIsNative()"
+          [skin]="emojiSkin()"
+          [size]="emojiSize()"
+          [set]="emojiSet()"
+          [sheetSize]="emojiSheetSize()"
+          [backgroundImageFn]="emojiBackgroundImageFn()"
+          [imageUrlFn]="emojiImageUrlFn()"
         ></ngx-emoji>
       </div>
 
       <div class="emoji-mart-preview-data">
-        <div class="emoji-mart-preview-name">{{ emojiData.name }}</div>
+        <div class="emoji-mart-preview-name">{{ emojiData().name }}</div>
         <div class="emoji-mart-preview-shortname">
           <span
             class="emoji-mart-preview-shortname"
-            *ngFor="let short_name of emojiData.shortNames"
+            *ngFor="let short_name of emojiData().shortNames"
           >
             :{{ short_name }}:
           </span>
         </div>
         <div class="emoji-mart-preview-emoticons">
-          <span class="emoji-mart-preview-emoticon" *ngFor="let emoticon of listedEmoticons">
+          <span class="emoji-mart-preview-emoticon" *ngFor="let emoticon of listedEmoticons()">
             {{ emoticon }}
           </span>
         </div>
       </div>
     </div>
 
-    <div class="emoji-mart-preview" [hidden]="emoji">
+    <div class="emoji-mart-preview" [hidden]="emoji()">
       <div class="emoji-mart-preview-emoji">
         <ngx-emoji
-          *ngIf="idleEmoji && idleEmoji.length"
-          [isNative]="emojiIsNative"
-          [skin]="emojiSkin"
-          [set]="emojiSet"
-          [emoji]="idleEmoji"
-          [backgroundImageFn]="emojiBackgroundImageFn"
+          *ngIf="idleEmoji() && idleEmoji().length"
+          [isNative]="emojiIsNative()"
+          [skin]="emojiSkin()"
+          [set]="emojiSet()"
+          [emoji]="idleEmoji()"
+          [backgroundImageFn]="emojiBackgroundImageFn()"
           [size]="38"
-          [imageUrlFn]="emojiImageUrlFn"
+          [imageUrlFn]="emojiImageUrlFn()"
         ></ngx-emoji>
       </div>
 
       <div class="emoji-mart-preview-data">
-        <span class="emoji-mart-title-label">{{ title }}</span>
+        <span class="emoji-mart-title-label">{{ title() }}</span>
       </div>
 
       <div class="emoji-mart-preview-skins">
         <emoji-skins
-          [skin]="emojiSkin"
+          [skin]="emojiSkin()"
           (changeSkin)="skinChange.emit($event)"
-          [i18n]="i18n"
+          [i18n]="i18n()"
         ></emoji-skins>
       </div>
     </div>
@@ -79,36 +78,30 @@ import { SkinComponent } from './skins.component';
   preserveWhitespaces: false,
   imports: [CommonModule, EmojiComponent, SkinComponent],
 })
-export class PreviewComponent implements OnChanges {
-  @Input() title?: string;
-  @Input() emoji: any;
-  @Input() idleEmoji: any;
-  @Input() i18n: any;
-  @Input() emojiIsNative!: Emoji['isNative'];
-  @Input() emojiSkin!: Emoji['skin'];
-  @Input() emojiSize!: Emoji['size'];
-  @Input() emojiSet!: Emoji['set'];
-  @Input() emojiSheetSize!: Emoji['sheetSize'];
-  @Input() emojiBackgroundImageFn!: Emoji['backgroundImageFn'];
-  @Input() emojiImageUrlFn?: Emoji['imageUrlFn'];
+export class PreviewComponent {
+  readonly title = input<string>();
+  readonly emoji = input<any>();
+  readonly idleEmoji = input<any>();
+  readonly i18n = input<any>();
+  readonly emojiIsNative = input.required<Emoji['isNative']>();
+  readonly emojiSkin = input.required<Emoji['skin']>();
+  readonly emojiSize = input.required<Emoji['size']>();
+  readonly emojiSet = input.required<Emoji['set']>();
+  readonly emojiSheetSize = input.required<Emoji['sheetSize']>();
+  readonly emojiBackgroundImageFn = input.required<Emoji['backgroundImageFn']>();
+  readonly emojiImageUrlFn = input<Emoji['imageUrlFn']>();
   @Output() skinChange = new EventEmitter<Emoji['skin']>();
-  emojiData: Partial<EmojiData> = {};
-  listedEmoticons?: string[];
-
-  constructor(public ref: ChangeDetectorRef, private emojiService: EmojiService) {}
-
-  ngOnChanges() {
-    if (!this.emoji) {
-      return;
+  readonly emojiData = computed<Partial<EmojiData>>(() => {
+    const emoji = this.emoji();
+    if (!emoji) {
+      return {};
     }
-    this.emojiData = this.emojiService.getData(
-      this.emoji,
-      this.emojiSkin,
-      this.emojiSet,
-    ) as EmojiData;
+    return this.emojiService.getData(emoji, this.emojiSkin(), this.emojiSet()) as EmojiData;
+  });
+  readonly listedEmoticons = computed(() => {
     const knownEmoticons: string[] = [];
     const listedEmoticons: string[] = [];
-    const emoitcons = this.emojiData.emoticons || [];
+    const emoitcons = this.emojiData().emoticons || [];
     emoitcons.forEach((emoticon: string) => {
       if (knownEmoticons.indexOf(emoticon.toLowerCase()) >= 0) {
         return;
@@ -116,7 +109,8 @@ export class PreviewComponent implements OnChanges {
       knownEmoticons.push(emoticon.toLowerCase());
       listedEmoticons.push(emoticon);
     });
-    this.listedEmoticons = listedEmoticons;
-    this.ref?.detectChanges();
-  }
+    return listedEmoticons;
+  });
+
+  constructor(private emojiService: EmojiService) {}
 }
