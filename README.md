@@ -1,21 +1,23 @@
-<img align="right" width="200" src="https://raw.githubusercontent.com/scttcper/ngx-emoji-mart/master/misc/preview.png" />
+<img align="right" width="200" src="https://raw.githubusercontent.com/arturovt/ngx-emoji-mart-next/master/misc/preview.png" />
 
-# ngx-emoji-mart
+# ngx-emoji-mart-next
 
-[![npm](https://badge.fury.io/js/%40ctrl%2Fngx-emoji-mart.svg)](https://www.npmjs.org/package/@ctrl/ngx-emoji-mart)
+[![npm](https://badge.fury.io/js/ngx-emoji-mart-next.svg)](https://www.npmjs.org/package/ngx-emoji-mart-next)
 
 **DEMO**: https://ngx-emoji-mart.vercel.app
+
+This is a maintained fork of [ngx-emoji-mart](https://github.com/scttcper/ngx-emoji-mart) by Scott Cooper. The original project was deprecated in February 2026. To switch, replace `@ctrl/ngx-emoji-mart` with `ngx-emoji-mart-next` in your dependencies and imports.
 
 This project is a port of [emoji-mart](https://github.com/missive/emoji-mart) by missive.
 
 ## Installation
 
 ```sh
-npm install @ctrl/ngx-emoji-mart
+npm install ngx-emoji-mart-next
 # Or if you're using yarn
-yarn add @ctrl/ngx-emoji-mart
+yarn add ngx-emoji-mart-next
 # Or if you're using pnpm
-pnpm install @ctrl/ngx-emoji-mart
+pnpm install ngx-emoji-mart-next
 ```
 
 ## Dependencies
@@ -39,7 +41,7 @@ Latest version available for each version of Angular
 Add `PickerComponent` to your module imports:
 
 ```ts
-import { PickerComponent } from '@ctrl/ngx-emoji-mart';
+import { PickerComponent } from 'ngx-emoji-mart-next';
 
 @NgModule({
   imports: [PickerComponent],
@@ -58,7 +60,7 @@ export class AppComponent {}
 Import styles in `styles.scss`:
 
 ```scss
-@import '@ctrl/ngx-emoji-mart/picker';
+@import 'ngx-emoji-mart-next/picker';
 ```
 
 Or bundle those styles through `angular.json` configuration:
@@ -68,7 +70,7 @@ Or bundle those styles through `angular.json` configuration:
   "options": {
     "styles": [
       "src/styles.scss",
-      "node_modules/@ctrl/ngx-emoji-mart/picker.css"
+      "node_modules/ngx-emoji-mart-next/picker.css"
     ]
   }
 }
@@ -219,7 +221,7 @@ Sheets are served from [unpkg](https://unpkg.com), a global CDN that serves file
 Add `EmojiComponent` to your module or standalone component `imports`:
 
 ```ts
-import { EmojiComponent } from '@ctrl/ngx-emoji-mart/ngx-emoji';
+import { EmojiComponent } from 'ngx-emoji-mart-next/ngx-emoji';
 ```
 
 ```html
@@ -298,7 +300,7 @@ const customEmojis = [
 The `Picker` doesn’t have to be mounted for you to take advantage of the advanced search results.
 
 ```ts
-import { EmojiSearch } from '@ctrl/ngx-emoji-mart';
+import { EmojiSearch } from 'ngx-emoji-mart-next';
 
 class ex {
   constructor(private emojiSearch: EmojiSearch) {
@@ -338,39 +340,39 @@ Possible keys are:
 
 Not only does **Emoji Mart** return more results than most emoji picker, they’re more accurate and sorted by relevance.
 
-<img width="338" alt="summer" src="https://raw.githubusercontent.com/scttcper/ngx-emoji-mart/master/misc/emoticons.png">
+<img width="338" alt="summer" src="https://raw.githubusercontent.com/arturovt/ngx-emoji-mart-next/master/misc/emoticons.png">
 
 #### Emoticons
 
 The only emoji picker that returns emojis when searching for emoticons.
 
-<img width="338" alt="emoticons" src="https://raw.githubusercontent.com/scttcper/ngx-emoji-mart/master/misc/emoticons.png">
+<img width="338" alt="emoticons" src="https://raw.githubusercontent.com/arturovt/ngx-emoji-mart-next/master/misc/emoticons.png">
 
 ### Fully customizable
 
 #### Anchors color, title and default emoji
 
-<img width="338" alt="customizable-color" src="https://raw.githubusercontent.com/scttcper/ngx-emoji-mart/master/misc/customizable-color.png"><br><img width="338" alt="pick-your-emoji" src="https://raw.githubusercontent.com/scttcper/ngx-emoji-mart/master/misc/pick-your-emoji.png">
+<img width="338" alt="customizable-color" src="https://raw.githubusercontent.com/arturovt/ngx-emoji-mart-next/master/misc/customizable-color.png"><br><img width="338" alt="pick-your-emoji" src="https://raw.githubusercontent.com/arturovt/ngx-emoji-mart-next/master/misc/pick-your-emoji.png">
 
 #### Emojis sizes and length
 
-<img width="296" alt="size-and-length" src="https://raw.githubusercontent.com/scttcper/ngx-emoji-mart/master/misc/size-and-length.png">
+<img width="296" alt="size-and-length" src="https://raw.githubusercontent.com/arturovt/ngx-emoji-mart-next/master/misc/size-and-length.png">
 
 #### Default skin color
 
 As the developer, you have control over which skin color is used by default.
 
-<img width="205" alt="skins" src="https://raw.githubusercontent.com/scttcper/ngx-emoji-mart/master/misc/skins.png">
+<img width="205" alt="skins" src="https://raw.githubusercontent.com/arturovt/ngx-emoji-mart-next/master/misc/skins.png">
 
 It can however be overwritten as per user preference.
 
-<img width="98" alt="customizable-skin" src="https://raw.githubusercontent.com/scttcper/ngx-emoji-mart/master/misc/customizable-skin.png">
+<img width="98" alt="customizable-skin" src="https://raw.githubusercontent.com/arturovt/ngx-emoji-mart-next/master/misc/customizable-skin.png">
 
 #### Multiple sets supported
 
 Apple / Google / Twitter / Facebook
 
-<img width="214" alt="sets" src="https://raw.githubusercontent.com/scttcper/ngx-emoji-mart/master/misc/sets.png">
+<img width="214" alt="sets" src="https://raw.githubusercontent.com/arturovt/ngx-emoji-mart-next/master/misc/sets.png">
 
 ---
 

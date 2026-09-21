@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 
-import { Emoji } from '@ctrl/ngx-emoji-mart/ngx-emoji';
+import { Emoji } from 'ngx-emoji-mart-next/ngx-emoji';
 
 @Component({
   selector: 'emoji-skins',

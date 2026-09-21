@@ -6,14 +6,14 @@ import { GhButtonModule } from '@ctrl/ngx-github-buttons';
   template: `
     <footer class="footer mb-4 mt-5">
       <div class="mb-2">
-        <gh-button [count]="true" user="scttcper" repo="ngx-emoji-mart"></gh-button>
+        <gh-button [count]="true" user="arturovt" repo="ngx-emoji-mart-next"></gh-button>
       </div>
       Demo using Angular {{ version }}
       <br />
       Released under the
-      <a href="https://github.com/scttcper/ngx-emoji-mart/blob/master/LICENSE">MIT</a>
+      <a href="https://github.com/arturovt/ngx-emoji-mart-next/blob/master/LICENSE">MIT</a>
       license -
-      <a href="https://github.com/scttcper/ngx-emoji-mart">View source</a>
+      <a href="https://github.com/arturovt/ngx-emoji-mart-next">View source</a>
     </footer>
   `,
   styles: [
