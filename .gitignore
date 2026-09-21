@@ -44,3 +44,7 @@ testem.log
 .DS_Store
 Thumbs.db
 .ng_pkg_build
+
+# vitest browser mode failure screenshots
+/.vitest-attachments
+__screenshots__
