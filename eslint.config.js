@@ -14,9 +14,5 @@ module.exports = defineConfig([
   {
     files: ['**/*.html'],
     extends: [...angular.configs.templateRecommended],
-    rules: {
-      // This rule is new in angular-eslint 22. Turn it on when the templates use `@if` and `@for`.
-      '@angular-eslint/template/prefer-control-flow': 'off',
-    },
   },
 ]);

@@ -26,5 +26,6 @@
     "strictInputAccessModifiers": true,
     "strictTemplates": false
   },
-  "exclude": ["e2e", "playwright.config.ts"]
+  "files": [],
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.spec.json" }]
 }

@@ -1,6 +1,6 @@
 <section
   class="emoji-mart {{ darkMode() ? 'emoji-mart-dark' : '' }}"
-  [style.width]="getWidth()"
+  [style.width]="width()"
   [ngStyle]="style()"
 >
   <div class="emoji-mart-bar">
@@ -13,63 +13,67 @@
       [icons]="mergedCategoriesIcons()"
     ></emoji-mart-anchors>
   </div>
-  <emoji-search
-    *ngIf="enableSearch()"
-    [i18n]="mergedI18n()"
-    (searchResults)="handleSearch($event)"
-    (enterKeyOutsideAngular)="handleEnterKey($event)"
-    [include]="include() ?? []"
-    [exclude]="exclude() ?? []"
-    [custom]="custom()"
-    [autoFocus]="autoFocus()"
-    [icons]="mergedSearchIcons()"
-    [emojisToShowFilter]="emojisToShowFilter()"
-  ></emoji-search>
+  @if (enableSearch()) {
+    <emoji-search
+      [i18n]="mergedI18n()"
+      (searchResults)="handleSearch($event)"
+      (enterKeyOutsideAngular)="handleEnterKey($event)"
+      [include]="include() ?? []"
+      [exclude]="exclude() ?? []"
+      [custom]="custom()"
+      [autoFocus]="autoFocus()"
+      [icons]="mergedSearchIcons()"
+      [emojisToShowFilter]="emojisToShowFilter()"
+    ></emoji-search>
+  }
   <section #scrollRef class="emoji-mart-scroll" [attr.aria-label]="mergedI18n().emojilist">
-    <emoji-category
-      *ngFor="let category of displayedCategories(); let idx = index; trackBy: categoryTrack"
-      [id]="category.id"
-      [name]="category.name"
-      [emojis]="category.emojis"
-      [perLine]="perLine()"
-      [totalFrequentLines]="totalFrequentLines()"
-      [hasStickyPosition]="isNative()"
-      [i18n]="mergedI18n()"
-      [hideObsolete]="hideObsolete()"
-      [notFoundEmoji]="notFoundEmoji()"
-      [custom]="category.id === RECENT_CATEGORY.id ? (CUSTOM_CATEGORY.emojis ?? []) : []"
-      [recent]="category.id === RECENT_CATEGORY.id ? recent() : undefined"
-      [virtualize]="virtualize()"
-      [virtualizeOffset]="virtualizeOffset()"
-      [emojiIsNative]="isNative()"
-      [emojiSkin]="currentSkin()"
-      [emojiSize]="emojiSize()"
-      [emojiSet]="set()"
-      [emojiSheetSize]="sheetSize()"
-      [emojiForceSize]="isNative()"
-      [emojiTooltip]="emojiTooltip()"
-      [emojiBackgroundImageFn]="backgroundImageFn()"
-      [emojiImageUrlFn]="imageUrlFn()"
-      [emojiUseButton]="useButton()"
-      (emojiOverOutsideAngular)="handleEmojiOver($event)"
-      (emojiLeaveOutsideAngular)="handleEmojiLeave()"
-      (emojiClickOutsideAngular)="handleEmojiClick($event)"
-    ></emoji-category>
+    @for (category of displayedCategories(); track category.id) {
+      <emoji-category
+        [id]="category.id"
+        [name]="category.name"
+        [emojis]="category.emojis"
+        [perLine]="perLine()"
+        [totalFrequentLines]="totalFrequentLines()"
+        [hasStickyPosition]="isNative()"
+        [i18n]="mergedI18n()"
+        [hideObsolete]="hideObsolete()"
+        [notFoundEmoji]="notFoundEmoji()"
+        [custom]="category.id === RECENT_CATEGORY.id ? (CUSTOM_CATEGORY.emojis ?? []) : []"
+        [recent]="category.id === RECENT_CATEGORY.id ? recent() : undefined"
+        [virtualize]="virtualize()"
+        [virtualizeOffset]="virtualizeOffset()"
+        [emojiIsNative]="isNative()"
+        [emojiSkin]="currentSkin()"
+        [emojiSize]="emojiSize()"
+        [emojiSet]="set()"
+        [emojiSheetSize]="sheetSize()"
+        [emojiForceSize]="isNative()"
+        [emojiTooltip]="emojiTooltip()"
+        [emojiBackgroundImageFn]="backgroundImageFn()"
+        [emojiImageUrlFn]="imageUrlFn()"
+        [emojiUseButton]="useButton()"
+        (emojiOverOutsideAngular)="handleEmojiOver($event)"
+        (emojiLeaveOutsideAngular)="handleEmojiLeave()"
+        (emojiClickOutsideAngular)="handleEmojiClick($event)"
+      ></emoji-category>
+    }
   </section>
-  <div class="emoji-mart-bar" *ngIf="showPreview()">
-    <emoji-preview
-      [title]="title()"
-      [emoji]="previewEmoji"
-      [idleEmoji]="emoji()"
-      [emojiIsNative]="isNative()"
-      [emojiSize]="38"
-      [emojiSkin]="currentSkin()"
-      [emojiSet]="set()"
-      [i18n]="mergedI18n()"
-      [emojiSheetSize]="sheetSize()"
-      [emojiBackgroundImageFn]="backgroundImageFn()"
-      [emojiImageUrlFn]="imageUrlFn()"
-      (skinChange)="handleSkinChange($event)"
-    ></emoji-preview>
-  </div>
+  @if (showPreview()) {
+    <div class="emoji-mart-bar">
+      <emoji-preview
+        [title]="title()"
+        [emoji]="previewEmoji"
+        [idleEmoji]="emoji()"
+        [emojiIsNative]="isNative()"
+        [emojiSize]="38"
+        [emojiSkin]="currentSkin()"
+        [emojiSet]="set()"
+        [i18n]="mergedI18n()"
+        [emojiSheetSize]="sheetSize()"
+        [emojiBackgroundImageFn]="backgroundImageFn()"
+        [emojiImageUrlFn]="imageUrlFn()"
+        (skinChange)="handleSkinChange($event)"
+      ></emoji-preview>
+    </div>
+  }
 </section>

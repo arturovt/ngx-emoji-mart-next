@@ -1,7 +1,7 @@
 import * as emojiDataRaw from 'emoji-datasource/emoji.json';
 import fs from 'fs';
 import path from 'node:path';
-import inflection from 'inflection';
+import * as inflection from 'inflection';
 import stringifyObject from 'stringify-object';
 import { fileURLToPath } from "node:url";
 

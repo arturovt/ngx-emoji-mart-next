@@ -18,6 +18,7 @@ import {
   computed,
   input,
   linkedSignal,
+  signal,
 } from '@angular/core';
 
 import {
@@ -119,6 +120,13 @@ export class PickerComponent implements OnInit, OnDestroy {
   @ViewChild(PreviewComponent, { static: false }) previewRef?: PreviewComponent;
   @ViewChild(SearchComponent, { static: false }) searchRef?: SearchComponent;
   @ViewChildren(CategoryComponent) categoryRefs!: QueryList<CategoryComponent>;
+  protected readonly width = computed(() => {
+    const style = this.style();
+    if (style && style.width) {
+      return style.width;
+    }
+    return this.perLine() * (this.emojiSize() + 12) + 12 + 2 + this.measureScrollbar() + 'px';
+  });
   protected readonly mergedI18n = computed(() => {
     const i18n = { ...I18N, ...this.i18n() };
     return { ...i18n, categories: { ...I18N.categories, ...i18n.categories } };
@@ -145,7 +153,7 @@ export class PickerComponent implements OnInit, OnDestroy {
   previewEmoji: EmojiData | null = null;
   animationFrameRequestId: number | null = null;
   NAMESPACE = 'emoji-mart';
-  measureScrollbar = 0;
+  readonly measureScrollbar = signal(0);
   RECENT_CATEGORY: EmojiCategory = {
     id: 'recent',
     name: 'Recent',
@@ -179,7 +187,7 @@ export class PickerComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     // measure scroll
-    this.measureScrollbar = measureScrollbar();
+    this.measureScrollbar.set(measureScrollbar());
 
     this.currentSkin.set(
       JSON.parse(
@@ -373,9 +381,6 @@ export class PickerComponent implements OnInit, OnDestroy {
       componentToScroll?.handleScroll(this.scrollRef.nativeElement.scrollTop);
     }
   }
-  categoryTrack(index: number, item: any) {
-    return item.id;
-  }
   handleScroll(noSelectionChange = false) {
     if (this.nextScroll) {
       this.selected = this.nextScroll;
@@ -515,14 +520,6 @@ export class PickerComponent implements OnInit, OnDestroy {
     this.currentSkin.set(skin);
     localStorage.setItem(`${this.NAMESPACE}.skin`, String(skin));
     this.skinChange.emit(skin);
-  }
-
-  getWidth(): string {
-    const style = this.style();
-    if (style && style.width) {
-      return style.width;
-    }
-    return this.perLine() * (this.emojiSize() + 12) + 12 + 2 + this.measureScrollbar + 'px';
   }
 
   private cancelAnimationFrame(): void {

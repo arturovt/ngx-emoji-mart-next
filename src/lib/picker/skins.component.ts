@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, input } from '@angular/core';
 
 import { Emoji } from 'ngx-emoji-mart-next/ngx-emoji';
@@ -7,31 +6,28 @@ import { Emoji } from 'ngx-emoji-mart-next/ngx-emoji';
   selector: 'emoji-skins',
   template: `
     <section class="emoji-mart-skin-swatches" [class.opened]="opened">
-      <span
-        *ngFor="let skinTone of skinTones"
-        class="emoji-mart-skin-swatch"
-        [class.selected]="skinTone === skin()"
-      >
-        <span
-          (click)="handleClick(skinTone)"
-          (keyup.enter)="handleClick(skinTone)"
-          (keyup.space)="handleClick(skinTone)"
-          class="emoji-mart-skin emoji-mart-skin-tone-{{ skinTone }}"
-          role="button"
-          [tabIndex]="tabIndex(skinTone)"
-          [attr.aria-hidden]="!isVisible(skinTone)"
-          [attr.aria-pressed]="pressed(skinTone)"
-          [attr.aria-haspopup]="!!isSelected(skinTone)"
-          [attr.aria-expanded]="expanded(skinTone)"
-          [attr.aria-label]="i18n().skintones[skinTone]"
-          [attr.title]="i18n().skintones[skinTone]"
-        ></span>
-      </span>
+      @for (skinTone of skinTones; track skinTone) {
+        <span class="emoji-mart-skin-swatch" [class.selected]="skinTone === skin()">
+          <span
+            (click)="handleClick(skinTone)"
+            (keyup.enter)="handleClick(skinTone)"
+            (keyup.space)="handleClick(skinTone)"
+            class="emoji-mart-skin emoji-mart-skin-tone-{{ skinTone }}"
+            role="button"
+            [tabIndex]="tabIndex(skinTone)"
+            [attr.aria-hidden]="!isVisible(skinTone)"
+            [attr.aria-pressed]="pressed(skinTone)"
+            [attr.aria-haspopup]="!!isSelected(skinTone)"
+            [attr.aria-expanded]="expanded(skinTone)"
+            [attr.aria-label]="i18n().skintones[skinTone]"
+            [attr.title]="i18n().skintones[skinTone]"
+          ></span>
+        </span>
+      }
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   preserveWhitespaces: false,
-  imports: [CommonModule],
 })
 export class SkinComponent {
   /** currently selected skin */

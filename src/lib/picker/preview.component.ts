@@ -7,58 +7,59 @@ import {
   computed,
   input,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 
 import { SkinComponent } from './skins.component';
 
 @Component({
   selector: 'emoji-preview',
   template: `
-    <div class="emoji-mart-preview" *ngIf="emoji() && emojiData()">
-      <div class="emoji-mart-preview-emoji">
-        <ngx-emoji
-          [emoji]="emoji()"
-          [size]="38"
-          [isNative]="emojiIsNative()"
-          [skin]="emojiSkin()"
-          [size]="emojiSize()"
-          [set]="emojiSet()"
-          [sheetSize]="emojiSheetSize()"
-          [backgroundImageFn]="emojiBackgroundImageFn()"
-          [imageUrlFn]="emojiImageUrlFn()"
-        ></ngx-emoji>
-      </div>
+    @if (emoji() && emojiData()) {
+      <div class="emoji-mart-preview">
+        <div class="emoji-mart-preview-emoji">
+          <ngx-emoji
+            [emoji]="emoji()"
+            [size]="38"
+            [isNative]="emojiIsNative()"
+            [skin]="emojiSkin()"
+            [size]="emojiSize()"
+            [set]="emojiSet()"
+            [sheetSize]="emojiSheetSize()"
+            [backgroundImageFn]="emojiBackgroundImageFn()"
+            [imageUrlFn]="emojiImageUrlFn()"
+          ></ngx-emoji>
+        </div>
 
-      <div class="emoji-mart-preview-data">
-        <div class="emoji-mart-preview-name">{{ emojiData().name }}</div>
-        <div class="emoji-mart-preview-shortname">
-          <span
-            class="emoji-mart-preview-shortname"
-            *ngFor="let short_name of emojiData().shortNames"
-          >
-            :{{ short_name }}:
-          </span>
-        </div>
-        <div class="emoji-mart-preview-emoticons">
-          <span class="emoji-mart-preview-emoticon" *ngFor="let emoticon of listedEmoticons()">
-            {{ emoticon }}
-          </span>
+        <div class="emoji-mart-preview-data">
+          <div class="emoji-mart-preview-name">{{ emojiData().name }}</div>
+          <div class="emoji-mart-preview-shortname">
+            @for (short_name of emojiData().shortNames; track $index) {
+              <span class="emoji-mart-preview-shortname"> :{{ short_name }}: </span>
+            }
+          </div>
+          <div class="emoji-mart-preview-emoticons">
+            @for (emoticon of listedEmoticons(); track emoticon) {
+              <span class="emoji-mart-preview-emoticon">
+                {{ emoticon }}
+              </span>
+            }
+          </div>
         </div>
       </div>
-    </div>
+    }
 
     <div class="emoji-mart-preview" [hidden]="emoji()">
       <div class="emoji-mart-preview-emoji">
-        <ngx-emoji
-          *ngIf="idleEmoji() && idleEmoji().length"
-          [isNative]="emojiIsNative()"
-          [skin]="emojiSkin()"
-          [set]="emojiSet()"
-          [emoji]="idleEmoji()"
-          [backgroundImageFn]="emojiBackgroundImageFn()"
-          [size]="38"
-          [imageUrlFn]="emojiImageUrlFn()"
-        ></ngx-emoji>
+        @if (idleEmoji() && idleEmoji().length) {
+          <ngx-emoji
+            [isNative]="emojiIsNative()"
+            [skin]="emojiSkin()"
+            [set]="emojiSet()"
+            [emoji]="idleEmoji()"
+            [backgroundImageFn]="emojiBackgroundImageFn()"
+            [size]="38"
+            [imageUrlFn]="emojiImageUrlFn()"
+          ></ngx-emoji>
+        }
       </div>
 
       <div class="emoji-mart-preview-data">
@@ -76,7 +77,7 @@ import { SkinComponent } from './skins.component';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   preserveWhitespaces: false,
-  imports: [CommonModule, EmojiComponent, SkinComponent],
+  imports: [EmojiComponent, SkinComponent],
 })
 export class PreviewComponent {
   readonly title = input<string>();

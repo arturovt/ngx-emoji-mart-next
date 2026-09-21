@@ -275,6 +275,31 @@ describe('PickerComponent state', () => {
     });
   });
 
+  describe('width', () => {
+    const width = (fixture: ComponentFixture<unknown>) =>
+      one(fixture, 'section.emoji-mart').style.width;
+
+    it('should depend on `perLine` and `emojiSize`', async () => {
+      const wide = createPicker('<emoji-mart [perLine]="9" [emojiSize]="24"></emoji-mart>');
+      const narrow = createPicker('<emoji-mart [perLine]="5" [emojiSize]="24"></emoji-mart>');
+      const small = createPicker('<emoji-mart [perLine]="9" [emojiSize]="20"></emoji-mart>');
+      await settle(wide);
+      await settle(narrow);
+      await settle(small);
+
+      // Each emoji takes `emojiSize + 12` pixels.
+      expect(parseFloat(width(wide)) - parseFloat(width(narrow))).toBe(4 * (24 + 12));
+      expect(parseFloat(width(wide)) - parseFloat(width(small))).toBe(9 * (24 - 20));
+    });
+
+    it('should use the width of the `style` input', async () => {
+      const fixture = createPicker('<emoji-mart [style]="{ width: \'300px\' }"></emoji-mart>');
+      await settle(fixture);
+
+      expect(width(fixture)).toBe('300px');
+    });
+  });
+
   describe('preview', () => {
     const idleTitle = (fixture: ComponentFixture<unknown>) =>
       one(fixture, '.emoji-mart-title-label').textContent!.trim();

@@ -53,39 +53,42 @@ interface EmojiView {
 @Component({
   selector: 'ngx-emoji',
   template: `
-    <ng-template [ngIf]="view().isVisible">
-      <button
-        *ngIf="useButton(); else spanTpl"
-        #button
-        type="button"
-        [attr.title]="view().title"
-        [attr.aria-label]="view().label"
-        class="emoji-mart-emoji"
-        [class.emoji-mart-emoji-native]="isNative()"
-        [class.emoji-mart-emoji-custom]="view().custom"
-      >
-        <span [ngStyle]="view().style">
-          <ng-template [ngIf]="isNative()">{{ view().unified }}</ng-template>
-          <ng-content></ng-content>
+    @if (view().isVisible) {
+      @if (useButton()) {
+        <button
+          #button
+          type="button"
+          [attr.title]="view().title"
+          [attr.aria-label]="view().label"
+          class="emoji-mart-emoji"
+          [class.emoji-mart-emoji-native]="isNative()"
+          [class.emoji-mart-emoji-custom]="view().custom"
+        >
+          <span [ngStyle]="view().style">
+            @if (isNative()) {
+              {{ view().unified }}
+            }
+            <ng-content></ng-content>
+          </span>
+        </button>
+      } @else {
+        <span
+          #button
+          [attr.title]="view().title"
+          [attr.aria-label]="view().label"
+          class="emoji-mart-emoji"
+          [class.emoji-mart-emoji-native]="isNative()"
+          [class.emoji-mart-emoji-custom]="view().custom"
+        >
+          <span [ngStyle]="view().style">
+            @if (isNative()) {
+              {{ view().unified }}
+            }
+            <ng-content></ng-content>
+          </span>
         </span>
-      </button>
-    </ng-template>
-
-    <ng-template #spanTpl>
-      <span
-        #button
-        [attr.title]="view().title"
-        [attr.aria-label]="view().label"
-        class="emoji-mart-emoji"
-        [class.emoji-mart-emoji-native]="isNative()"
-        [class.emoji-mart-emoji-custom]="view().custom"
-      >
-        <span [ngStyle]="view().style">
-          <ng-template [ngIf]="isNative()">{{ view().unified }}</ng-template>
-          <ng-content></ng-content>
-        </span>
-      </span>
-    </ng-template>
+      }
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   preserveWhitespaces: false,
