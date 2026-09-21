@@ -3,6 +3,8 @@ allowBuilds:
   core-js: false
   cypress: true
   esbuild: true
+  lmdb: false
+  msgpackr-extract: false
   nice-napi: false
   nx: false
   puppeteer: true
