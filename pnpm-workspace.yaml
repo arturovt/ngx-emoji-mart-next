@@ -1,0 +1,8 @@
+allowBuilds:
+  '@parcel/watcher': false
+  core-js: false
+  cypress: true
+  esbuild: true
+  nice-napi: false
+  nx: false
+  puppeteer: true

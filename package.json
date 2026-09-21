@@ -15,11 +15,10 @@
     "test": "ng test --watch=false",
     "test:watch": "ng test",
     "test:ci": "ng test --watch=false --code-coverage --no-progress --browsers=ChromeHeadlessCustom",
-    "link": "cd dist && npm link",
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
     "vercel": "ng build --configuration vercel",
-    "// - E2E": "E2E testing #requires npm run build:integration:prod",
+    "// - E2E": "E2E testing #requires pnpm run build:integration:prod",
     "cy:open": "cypress open",
     "cy:run": "cypress run",
     "e2e:ci": "cross-env CI=true start-test serve:integration:static 4200 cy:run"
@@ -78,10 +77,5 @@
   "repository": "scttcper/ngx-emoji-mart",
   "engines": {
     "node": ">= 14"
-  },
-  "release": {
-    "branches": [
-      "master"
-    ]
   }
 }

@@ -22,10 +22,5 @@
   "publishConfig": {
     "access": "public",
     "provenance": true
-  },
-  "release": {
-    "branches": [
-      "master"
-    ]
   }
 }
