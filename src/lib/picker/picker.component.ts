@@ -67,7 +67,6 @@ const I18N: any = {
   templateUrl: './picker.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   preserveWhitespaces: false,
-  standalone: true,
   imports: [CommonModule, AnchorsComponent, SearchComponent, PreviewComponent, CategoryComponent],
 })
 export class PickerComponent implements OnInit, OnDestroy {

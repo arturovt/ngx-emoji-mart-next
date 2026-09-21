@@ -9,7 +9,6 @@ describe('PickerComponent', () => {
   @Component({
     template: '<emoji-mart title="Pick your emoji…" emoji="point_up"></emoji-mart>',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
     imports: [PickerModule],
   })
   class TestComponent {}

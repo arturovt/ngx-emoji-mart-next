@@ -30,7 +30,6 @@ const CUSTOM_EMOJIS = [
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  standalone: true,
   imports: [CommonModule, PickerComponent, EmojiComponent, FooterComponent],
 })
 export class AppComponent {

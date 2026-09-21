@@ -34,7 +34,6 @@ import { EmojiCategory } from 'ngx-emoji-mart-next/ngx-emoji';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   preserveWhitespaces: false,
-  standalone: true,
   imports: [CommonModule],
 })
 export class AnchorsComponent {

@@ -58,7 +58,6 @@ let id = 0;
     </div>
   `,
   preserveWhitespaces: false,
-  standalone: true,
   imports: [FormsModule],
 })
 export class SearchComponent implements AfterViewInit, OnInit, OnDestroy {

@@ -103,7 +103,6 @@ import { EmojiFrequentlyService } from './emoji-frequently.service';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   preserveWhitespaces: false,
-  standalone: true,
   imports: [CommonModule, EmojiComponent],
 })
 export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {

@@ -26,7 +26,6 @@ import { GhButtonModule } from '@ctrl/ngx-github-buttons';
       }
     `,
   ],
-  standalone: true,
   imports: [GhButtonModule],
 })
 export class FooterComponent {

@@ -7,6 +7,7 @@ describe('EmojiComponent', () => {
   it('should trigger change detection whenever `emojiOver` has observers', () => {
     @Component({
       template: '<ngx-emoji (emojiOver)="onEmojiOver()"></ngx-emoji>',
+      standalone: false,
     })
     class TestComponent {
       onEmojiOver() {}
@@ -34,6 +35,7 @@ describe('EmojiComponent', () => {
   it('should trigger change detection whenever `emojiLeave` has observers', () => {
     @Component({
       template: '<ngx-emoji (emojiLeave)="onEmojiLeave()"></ngx-emoji>',
+      standalone: false,
     })
     class TestComponent {
       onEmojiLeave() {}
@@ -61,6 +63,7 @@ describe('EmojiComponent', () => {
   it('should trigger change detection whenever `emojiClick` has observers', () => {
     @Component({
       template: '<ngx-emoji (emojiClick)="onEmojiClick()"></ngx-emoji>',
+      standalone: false,
     })
     class TestComponent {
       onEmojiClick() {}
