@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { environment } from '../environments/environment';
@@ -30,6 +30,7 @@ const CUSTOM_EMOJIS = [
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, PickerComponent, EmojiComponent, FooterComponent],
 })
 export class AppComponent {

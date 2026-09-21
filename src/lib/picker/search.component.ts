@@ -9,6 +9,7 @@ import {
   OnInit,
   Output,
   ViewChild,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -58,6 +59,7 @@ let id = 0;
     </div>
   `,
   preserveWhitespaces: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FormsModule],
 })
 export class SearchComponent implements AfterViewInit, OnInit, OnDestroy {

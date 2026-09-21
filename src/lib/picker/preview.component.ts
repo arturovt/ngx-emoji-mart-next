@@ -84,12 +84,12 @@ export class PreviewComponent implements OnChanges {
   @Input() emoji: any;
   @Input() idleEmoji: any;
   @Input() i18n: any;
-  @Input() emojiIsNative?: Emoji['isNative'];
-  @Input() emojiSkin?: Emoji['skin'];
-  @Input() emojiSize?: Emoji['size'];
-  @Input() emojiSet?: Emoji['set'];
-  @Input() emojiSheetSize?: Emoji['sheetSize'];
-  @Input() emojiBackgroundImageFn?: Emoji['backgroundImageFn'];
+  @Input() emojiIsNative!: Emoji['isNative'];
+  @Input() emojiSkin!: Emoji['skin'];
+  @Input() emojiSize!: Emoji['size'];
+  @Input() emojiSet!: Emoji['set'];
+  @Input() emojiSheetSize!: Emoji['sheetSize'];
+  @Input() emojiBackgroundImageFn!: Emoji['backgroundImageFn'];
   @Input() emojiImageUrlFn?: Emoji['imageUrlFn'];
   @Output() skinChange = new EventEmitter<Emoji['skin']>();
   emojiData: Partial<EmojiData> = {};

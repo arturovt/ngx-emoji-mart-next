@@ -1,4 +1,4 @@
-import { Component, VERSION } from '@angular/core';
+import { Component, VERSION, ChangeDetectionStrategy } from '@angular/core';
 import { GhButtonModule } from '@ctrl/ngx-github-buttons';
 
 @Component({
@@ -26,6 +26,7 @@ import { GhButtonModule } from '@ctrl/ngx-github-buttons';
       }
     `,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [GhButtonModule],
 })
 export class FooterComponent {

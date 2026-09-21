@@ -111,22 +111,22 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
   @Input() name = '';
   @Input() perLine = 9;
   @Input() totalFrequentLines = 4;
-  @Input() recent: string[] = [];
+  @Input() recent: string[] | undefined = [];
   @Input() custom: any[] = [];
   @Input() i18n: any;
   @Input() id: any;
   @Input() hideObsolete = true;
-  @Input() notFoundEmoji?: string;
+  @Input() notFoundEmoji!: string;
   @Input() virtualize = false;
   @Input() virtualizeOffset = 0;
-  @Input() emojiIsNative?: Emoji['isNative'];
+  @Input() emojiIsNative!: Emoji['isNative'];
   @Input() emojiSkin!: Emoji['skin'];
   @Input() emojiSize!: Emoji['size'];
   @Input() emojiSet!: Emoji['set'];
   @Input() emojiSheetSize!: Emoji['sheetSize'];
   @Input() emojiForceSize!: Emoji['forceSize'];
   @Input() emojiTooltip!: Emoji['tooltip'];
-  @Input() emojiBackgroundImageFn?: Emoji['backgroundImageFn'];
+  @Input() emojiBackgroundImageFn!: Emoji['backgroundImageFn'];
   @Input() emojiImageUrlFn?: Emoji['imageUrlFn'];
   @Input() emojiUseButton?: boolean;
 
