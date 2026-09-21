@@ -57,6 +57,20 @@ test.describe('Demo app', () => {
     await expect(recent.locator('span').first()).toHaveCSS('background-image', /parrot\.gif/);
   });
 
+  test('should find a custom emoji with the search', async ({ page }) => {
+    // "Party Parrot" has the short name of a standard emoji, so the search finds both.
+    await page.locator('.emoji-mart-search input').fill('parrot');
+
+    const results = page
+      .locator('section.emoji-mart-category')
+      .filter({ has: page.locator('[data-name="Search"]') });
+
+    await expect(results.locator('.emoji-mart-emoji')).toHaveCount(2);
+    const custom = results.locator('.emoji-mart-emoji.emoji-mart-emoji-custom');
+    await expect(custom).toHaveCount(1);
+    await expect(custom.locator('span').first()).toHaveCSS('background-image', /parrot\.gif/);
+  });
+
   test('should render the custom emojis', async ({ page }) => {
     const custom = page
       .locator('section.emoji-mart-category')

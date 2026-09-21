@@ -363,6 +363,23 @@ describe('PickerComponent state', () => {
       expect(previewName(fixture)).toBe('Party Parrot');
     });
 
+    it('should find both of them with the search', async () => {
+      const fixture = createPicker(template, { custom });
+      await settle(fixture);
+
+      const input = one(fixture, '.emoji-mart-search input') as HTMLInputElement;
+      input.value = 'parrot';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      await settle(fixture);
+
+      const results = one(fixture, '.emoji-mart-category-label[data-name="Search"]')
+        .parentElement as HTMLElement;
+      const found = Array.from(results.querySelectorAll('.emoji-mart-emoji')) as HTMLElement[];
+
+      expect(found.map(isCustom).sort()).toEqual([false, true]);
+    });
+
     it('should remember each of them in the recent category', async () => {
       const first = createPicker(template, { custom });
       await settle(first);

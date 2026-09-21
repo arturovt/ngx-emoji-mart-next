@@ -1,21 +1,36 @@
 import { Injectable, inject } from '@angular/core';
 
 import { categories, EmojiData, EmojiService } from 'ngx-emoji-mart-next/ngx-emoji';
+import { CUSTOM_EMOJI_KEY_PREFIX } from './emoji-frequently.service';
 import { intersect } from './utils';
+
+type SearchIndex = {
+  results?: EmojiData[];
+  pool?: { [key: string]: EmojiData };
+  [key: string]: any;
+};
+
+/** The emojis of one combination of `include`, `exclude` and custom emojis. */
+interface SearchEntry {
+  /** The emojis that are searched. The key of a custom emoji starts with the custom prefix. */
+  pool: { [key: string]: EmojiData };
+  /** The emojis that are returned. It has the same keys as the pool. */
+  list: { [key: string]: EmojiData };
+  /** The results for the characters that were typed. */
+  index: SearchIndex;
+}
 
 @Injectable({ providedIn: 'root' })
 export class EmojiSearch {
   private emojiService = inject(EmojiService);
 
   originalPool: any = {};
-  index: {
-    results?: EmojiData[];
-    pool?: { [key: string]: EmojiData };
-    [key: string]: any;
-  } = {};
+  index: SearchIndex = {};
   emojisList: any = {};
   emoticonsList: { [key: string]: string } = {};
-  emojiSearch: { [key: string]: string } = {};
+
+  private readonly entries = new Map<string, SearchEntry>();
+  private readonly searchTexts = new WeakMap<EmojiData, string>();
 
   constructor() {
     for (const emojiData of this.emojiService.emojis) {
@@ -35,17 +50,6 @@ export class EmojiSearch {
     }
   }
 
-  addCustomToPool(custom: any, pool: any) {
-    for (const emoji of custom) {
-      const emojiId = emoji.id || emoji.shortNames[0];
-
-      if (emojiId && !pool[emojiId]) {
-        pool[emojiId] = this.emojiService.getData(emoji);
-        this.emojisList[emojiId] = this.emojiService.getSanitizedData(emoji);
-      }
-    }
-  }
-
   search(
     value: string,
     emojisToShowFilter?: (x: any) => boolean,
@@ -54,10 +58,7 @@ export class EmojiSearch {
     exclude: any[] = [],
     custom: any[] = [],
   ): EmojiData[] | null {
-    this.addCustomToPool(custom, this.originalPool);
-
     let results: EmojiData[] | undefined;
-    let pool = this.originalPool;
 
     if (value.length) {
       if (value === '-' || value === '-1') {
@@ -68,104 +69,13 @@ export class EmojiSearch {
       }
 
       let values = value.toLowerCase().split(/[\s|,|\-|_]+/);
-      let allResults = [];
 
       if (values.length > 2) {
         values = [values[0], values[1]];
       }
 
-      if (include.length || exclude.length) {
-        pool = {};
-
-        for (const category of categories || []) {
-          const isIncluded = include && include.length ? include.indexOf(category.id) > -1 : true;
-          const isExcluded = exclude && exclude.length ? exclude.indexOf(category.id) > -1 : false;
-
-          if (!isIncluded || isExcluded) {
-            continue;
-          }
-
-          for (const emojiId of category.emojis || []) {
-            // Need to make sure that pool gets keyed
-            // with the correct id, which is why we call emojiService.getData below
-            const emoji = this.emojiService.getData(emojiId);
-            pool[emoji?.id ?? ''] = emoji;
-          }
-        }
-
-        if (custom.length) {
-          const customIsIncluded =
-            include && include.length ? include.indexOf('custom') > -1 : true;
-          const customIsExcluded =
-            exclude && exclude.length ? exclude.indexOf('custom') > -1 : false;
-          if (customIsIncluded && !customIsExcluded) {
-            this.addCustomToPool(custom, pool);
-          }
-        }
-      }
-
-      allResults = values
-        .map(v => {
-          let aPool = pool;
-          let aIndex = this.index;
-          let length = 0;
-
-          for (let charIndex = 0; charIndex < v.length; charIndex++) {
-            const char = v[charIndex];
-            length++;
-            if (!aIndex[char]) {
-              aIndex[char] = {};
-            }
-            aIndex = aIndex[char];
-
-            if (!aIndex.results) {
-              const scores: { [key: string]: number } = {};
-
-              aIndex.results = [];
-              aIndex.pool = {};
-
-              for (const id of Object.keys(aPool)) {
-                const emoji = aPool[id];
-                if (!this.emojiSearch[id]) {
-                  this.emojiSearch[id] = this.buildSearch(
-                    emoji.short_names,
-                    emoji.name,
-                    emoji.id,
-                    emoji.keywords,
-                    emoji.emoticons,
-                  );
-                }
-                const query = this.emojiSearch[id];
-                const sub = v.substr(0, length);
-                const subIndex = query.indexOf(sub);
-
-                if (subIndex !== -1) {
-                  let score = subIndex + 1;
-                  if (sub === id) {
-                    score = 0;
-                  }
-
-                  aIndex.results.push(this.emojisList[id]);
-                  aIndex.pool[id] = emoji;
-
-                  scores[id] = score;
-                }
-              }
-
-              aIndex.results.sort((a, b) => {
-                const aScore = scores[a.id];
-                const bScore = scores[b.id];
-
-                return aScore - bScore;
-              });
-            }
-
-            aPool = aIndex.pool;
-          }
-
-          return aIndex.results;
-        })
-        .filter(a => a);
+      const entry = this.getEntry(include, exclude, custom);
+      const allResults = values.map(v => this.searchEntry(entry, v)).filter(a => a);
 
       if (allResults.length > 1) {
         results = intersect.apply(null, allResults as any);
@@ -180,7 +90,9 @@ export class EmojiSearch {
       if (emojisToShowFilter) {
         results = results.filter((result: EmojiData) => {
           if (result && result.id) {
-            return emojisToShowFilter(this.emojiService.names[result.id]);
+            return emojisToShowFilter(
+              result.custom ? undefined : this.emojiService.names[result.id],
+            );
           }
           return false;
         });
@@ -191,6 +103,120 @@ export class EmojiSearch {
       }
     }
     return results || null;
+  }
+
+  /**
+   * The emojis and the cached results are kept for each combination of `include`, `exclude` and
+   * custom emojis. This way a call never gets the results of another combination.
+   */
+  private getEntry(include: any[], exclude: any[], custom: any[]): SearchEntry {
+    if (!include.length && !exclude.length && !custom.length) {
+      return { pool: this.originalPool, list: this.emojisList, index: this.index };
+    }
+
+    const signature = JSON.stringify([include, exclude, custom]);
+    let entry = this.entries.get(signature);
+    if (!entry) {
+      entry = this.createEntry(include, exclude, custom);
+      this.entries.set(signature, entry);
+    }
+    return entry;
+  }
+
+  private createEntry(include: any[], exclude: any[], custom: any[]): SearchEntry {
+    let pool: { [key: string]: EmojiData };
+
+    if (include.length || exclude.length) {
+      pool = {};
+
+      for (const category of categories || []) {
+        const isIncluded = include.length ? include.indexOf(category.id) > -1 : true;
+        const isExcluded = exclude.length ? exclude.indexOf(category.id) > -1 : false;
+
+        if (!isIncluded || isExcluded) {
+          continue;
+        }
+
+        for (const emojiId of category.emojis || []) {
+          // Need to make sure that pool gets keyed
+          // with the correct id, which is why we call emojiService.getData below
+          const emoji = this.emojiService.getData(emojiId);
+          if (emoji) {
+            pool[emoji.id] = emoji;
+          }
+        }
+      }
+    } else {
+      pool = { ...this.originalPool };
+    }
+
+    const list: { [key: string]: EmojiData } = { ...this.emojisList };
+    const customIsIncluded = include.length ? include.indexOf('custom') > -1 : true;
+    const customIsExcluded = exclude.length ? exclude.indexOf('custom') > -1 : false;
+
+    if (customIsIncluded && !customIsExcluded) {
+      for (const emoji of custom) {
+        const id = emoji.id || emoji.shortNames?.[0];
+        // A custom emoji can have the same id as a standard emoji, so it has its own key.
+        const key = `${CUSTOM_EMOJI_KEY_PREFIX}${id}`;
+
+        if (id && !pool[key]) {
+          const data = { ...emoji, id, custom: true };
+          pool[key] = this.emojiService.getData(data)!;
+          list[key] = this.emojiService.getSanitizedData(data)!;
+        }
+      }
+    }
+
+    return { pool, list, index: {} };
+  }
+
+  private searchEntry(entry: SearchEntry, value: string): EmojiData[] {
+    let pool = entry.pool;
+    let index = entry.index;
+    let length = 0;
+
+    for (let charIndex = 0; charIndex < value.length; charIndex++) {
+      const char = value[charIndex];
+      length++;
+      if (!index[char]) {
+        index[char] = {};
+      }
+      index = index[char];
+
+      if (!index.results) {
+        const sub = value.substr(0, length);
+        const found: { emoji: EmojiData; score: number }[] = [];
+
+        index.pool = {};
+
+        for (const key of Object.keys(pool)) {
+          const emoji = pool[key];
+          const subIndex = this.getSearchText(emoji).indexOf(sub);
+
+          if (subIndex !== -1) {
+            found.push({ emoji: entry.list[key], score: sub === emoji.id ? 0 : subIndex + 1 });
+            index.pool[key] = emoji;
+          }
+        }
+
+        index.results = found.sort((a, b) => a.score - b.score).map(({ emoji }) => emoji);
+      }
+
+      pool = index.pool!;
+    }
+
+    return index.results!;
+  }
+
+  private getSearchText(emoji: EmojiData): string {
+    let text = this.searchTexts.get(emoji);
+    if (text === undefined) {
+      // The short names are not part of the text. `id` is the first short name.
+      text = this.buildSearch([], emoji.name, emoji.id, emoji.keywords, emoji.emoticons);
+      this.searchTexts.set(emoji, text);
+    }
+    return text;
   }
 
   buildSearch(
