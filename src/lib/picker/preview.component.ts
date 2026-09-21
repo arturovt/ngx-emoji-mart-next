@@ -6,6 +6,7 @@ import {
   Output,
   computed,
   input,
+  inject,
 } from '@angular/core';
 
 import { SkinComponent } from './skins.component';
@@ -80,6 +81,8 @@ import { SkinComponent } from './skins.component';
   imports: [EmojiComponent, SkinComponent],
 })
 export class PreviewComponent {
+  private emojiService = inject(EmojiService);
+
   readonly title = input<string>();
   readonly emoji = input<any>();
   readonly idleEmoji = input<any>();
@@ -112,6 +115,4 @@ export class PreviewComponent {
     });
     return listedEmoticons;
   });
-
-  constructor(private emojiService: EmojiService) {}
 }

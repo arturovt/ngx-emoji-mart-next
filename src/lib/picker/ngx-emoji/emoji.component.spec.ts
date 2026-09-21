@@ -33,7 +33,7 @@ describe('EmojiComponent', () => {
 
     expect(emoji(fixture)!.classList.contains('emoji-mart-emoji-native')).toBe(true);
     expect(emoji(fixture)!.textContent!.trim()).toBe('👍');
-    expect(emoji(fixture)!.getAttribute('aria-label')).toMatch(/^👍, \+1, .*thumbsup$/);
+    expect(emoji(fixture)!.getAttribute('aria-label')).toBe('👍, +1, thumbsup');
     expect(inner(fixture).style.fontSize).toBe('30px');
   });
 
@@ -98,12 +98,12 @@ describe('EmojiComponent', () => {
     fixture.componentInstance.name.set('+1');
     fixture.detectChanges();
 
-    expect(emoji(fixture)!.getAttribute('aria-label')).toMatch(/^👍, \+1/);
+    expect(emoji(fixture)!.getAttribute('aria-label')).toBe('👍, +1, thumbsup');
 
     fixture.componentInstance.name.set('grinning');
     fixture.detectChanges();
 
-    expect(emoji(fixture)!.getAttribute('aria-label')).toMatch(/^😀, grinning/);
+    expect(emoji(fixture)!.getAttribute('aria-label')).toBe('😀, grinning');
   });
 
   it('should not keep the title or the custom class when the inputs change back', () => {

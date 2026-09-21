@@ -1,10 +1,12 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 
 import { categories, EmojiData, EmojiService } from 'ngx-emoji-mart-next/ngx-emoji';
 import { intersect } from './utils';
 
 @Injectable({ providedIn: 'root' })
 export class EmojiSearch {
+  private emojiService = inject(EmojiService);
+
   originalPool: any = {};
   index: {
     results?: EmojiData[];
@@ -15,7 +17,7 @@ export class EmojiSearch {
   emoticonsList: { [key: string]: string } = {};
   emojiSearch: { [key: string]: string } = {};
 
-  constructor(private emojiService: EmojiService) {
+  constructor() {
     for (const emojiData of this.emojiService.emojis) {
       const { shortNames, emoticons } = emojiData;
       const id = shortNames[0];

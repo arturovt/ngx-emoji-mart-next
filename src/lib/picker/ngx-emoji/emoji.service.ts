@@ -25,10 +25,8 @@ export class EmojiService {
   uncompress(list: CompressedEmojiData[]) {
     this.emojis = list.map(emoji => {
       const data: any = { ...emoji };
-      if (!data.shortNames) {
-        data.shortNames = [];
-      }
-      data.shortNames.unshift(data.shortName);
+      // Do not change `emoji.shortNames`. The list is shared by every service.
+      data.shortNames = [data.shortName, ...(emoji.shortNames ?? [])];
       data.id = data.shortName;
       data.native = this.unifiedToNative(data.unified);
 

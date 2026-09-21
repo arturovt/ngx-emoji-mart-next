@@ -1,10 +1,12 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 
 import { EmojiData } from 'ngx-emoji-mart-next/ngx-emoji';
 
 @Injectable({ providedIn: 'root' })
 export class EmojiFrequentlyService {
+  private platformId = inject(PLATFORM_ID);
+
   NAMESPACE = 'emoji-mart';
   frequently: { [key: string]: number } | null = null;
   defaults: { [key: string]: number } = {};
@@ -27,7 +29,6 @@ export class EmojiFrequentlyService {
     'heart',
     'poop',
   ];
-  constructor(@Inject(PLATFORM_ID) private platformId: string) {}
   init() {
     this.frequently = JSON.parse(
       (isPlatformBrowser(this.platformId) &&

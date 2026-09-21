@@ -5,7 +5,6 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  Inject,
   NgZone,
   OnDestroy,
   OnInit,
@@ -19,6 +18,7 @@ import {
   input,
   linkedSignal,
   signal,
+  inject,
 } from '@angular/core';
 
 import {
@@ -73,6 +73,12 @@ const I18N: any = {
   imports: [CommonModule, AnchorsComponent, SearchComponent, PreviewComponent, CategoryComponent],
 })
 export class PickerComponent implements OnInit, OnDestroy {
+  private ngZone = inject(NgZone);
+  private renderer = inject(Renderer2);
+  private ref = inject(ChangeDetectorRef);
+  private frequently = inject(EmojiFrequentlyService);
+  private platformId = inject(PLATFORM_ID);
+
   readonly perLine = input(9);
   readonly totalFrequentLines = input(4);
   readonly i18n = input<any>({});
@@ -177,14 +183,6 @@ export class PickerComponent implements OnInit, OnDestroy {
       `https://cdn.jsdelivr.net/npm/emoji-datasource-${set}@14.0.0/img/${set}/sheets-256/${sheetSize}.png`,
   );
 
-  constructor(
-    private ngZone: NgZone,
-    private renderer: Renderer2,
-    private ref: ChangeDetectorRef,
-    private frequently: EmojiFrequentlyService,
-    @Inject(PLATFORM_ID) private platformId: string,
-  ) {}
-
   ngOnInit() {
     // measure scroll
     this.measureScrollbar.set(measureScrollbar());
@@ -222,11 +220,9 @@ export class PickerComponent implements OnInit, OnDestroy {
     }
 
     for (const category of allCategories) {
-      const isIncluded =
-        include && include.length ? include.indexOf(category.id) > -1 : true;
+      const isIncluded = include && include.length ? include.indexOf(category.id) > -1 : true;
       const exclude = this.exclude();
-      const isExcluded =
-        exclude && exclude.length ? exclude.indexOf(category.id) > -1 : false;
+      const isExcluded = exclude && exclude.length ? exclude.indexOf(category.id) > -1 : false;
       if (!isIncluded || isExcluded) {
         continue;
       }
@@ -258,9 +254,7 @@ export class PickerComponent implements OnInit, OnDestroy {
     }
 
     const includeRecent =
-      include && include.length
-        ? include.indexOf(this.RECENT_CATEGORY.id) > -1
-        : true;
+      include && include.length ? include.indexOf(this.RECENT_CATEGORY.id) > -1 : true;
     const excludeValue = this.exclude();
     const excludeRecent =
       excludeValue && excludeValue.length

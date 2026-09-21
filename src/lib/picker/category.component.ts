@@ -15,6 +15,7 @@ import {
   input,
   linkedSignal,
   signal,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable, Subject } from 'rxjs';
@@ -115,6 +116,10 @@ import { EmojiFrequentlyService } from './emoji-frequently.service';
   imports: [CommonModule, EmojiComponent],
 })
 export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
+  ref = inject(ChangeDetectorRef);
+  private emojiService = inject(EmojiService);
+  private frequently = inject(EmojiFrequentlyService);
+
   readonly emojis = input<any[] | null>(null);
   /** The emojis that are shown. The picker and the recent category can change them. */
   readonly displayedEmojis = linkedSignal(() => this.emojis());
@@ -170,12 +175,6 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
   maxMargin = 0;
   top = 0;
   rows = 0;
-
-  constructor(
-    public ref: ChangeDetectorRef,
-    private emojiService: EmojiService,
-    private frequently: EmojiFrequentlyService,
-  ) {}
 
   ngOnInit() {
     this.updateRecentEmojis();

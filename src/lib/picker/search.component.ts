@@ -11,6 +11,7 @@ import {
   computed,
   input,
   signal,
+  inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -63,6 +64,9 @@ let id = 0;
   imports: [FormsModule],
 })
 export class SearchComponent implements AfterViewInit, OnInit, OnDestroy {
+  private ngZone = inject(NgZone);
+  private emojiSearch = inject(EmojiSearch);
+
   readonly maxResults = input(75);
   readonly autoFocus = input(false);
   readonly i18n = input<any>();
@@ -75,15 +79,11 @@ export class SearchComponent implements AfterViewInit, OnInit, OnDestroy {
   @Output() enterKeyOutsideAngular = new EventEmitter<KeyboardEvent>();
   @ViewChild('inputRef', { static: true }) private inputRef!: ElementRef<HTMLInputElement>;
   readonly isSearching = signal(false);
-  readonly icon = computed(() =>
-    this.isSearching() ? this.icons().delete : this.icons().search,
-  );
+  readonly icon = computed(() => (this.isSearching() ? this.icons().delete : this.icons().search));
   query = '';
   inputId = `emoji-mart-search-${++id}`;
 
   private destroy$ = new Subject<void>();
-
-  constructor(private ngZone: NgZone, private emojiSearch: EmojiSearch) {}
 
   ngOnInit() {
     this.setupKeyupListener();
