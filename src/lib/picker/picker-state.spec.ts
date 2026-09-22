@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, NgZone } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { EmojiData, EmojiService, categories } from 'ngx-emoji-mart-next/ngx-emoji';
 
@@ -323,6 +323,45 @@ describe('PickerComponent state', () => {
         'parrot.gif',
       );
     });
+  });
+
+  // In an application with zone.js, entering the Angular zone runs change detection. The picker
+  // updates its preview on its own, and it enters the zone only for an output that is observed.
+  describe('Angular zone', () => {
+    const firstEmoji = (fixture: ComponentFixture<unknown>) =>
+      one(fixture, 'section.emoji-mart-category:not(.emoji-mart-no-results) .emoji-mart-emoji');
+
+    it('should not enter the zone for the preview or when nobody listens to the outputs', async () => {
+      const fixture = createPicker('<emoji-mart></emoji-mart>');
+      await settle(fixture);
+      const run = vi.spyOn(TestBed.inject(NgZone), 'run');
+
+      // Angular's own scheduler enters the zone later in a test without zone.js, so nothing is
+      // awaited here. `fixture.detectChanges` enters the zone too, so it is not called either.
+      firstEmoji(fixture).dispatchEvent(new MouseEvent('mouseenter'));
+      expect(one(fixture, '.emoji-mart-preview:not([hidden])')).not.toBeNull();
+      firstEmoji(fixture).dispatchEvent(new MouseEvent('mouseleave'));
+      firstEmoji(fixture).click();
+
+      expect(run).not.toHaveBeenCalled();
+      await frame();
+    });
+
+    it.each(['emojiClick', 'emojiSelect'])(
+      'should enter the zone once when %s is observed',
+      async output => {
+        const fixture = createPicker(`<emoji-mart (${output})="events.push(1)"></emoji-mart>`, {
+          events: [],
+        });
+        await settle(fixture);
+        const run = vi.spyOn(TestBed.inject(NgZone), 'run');
+
+        firstEmoji(fixture).click();
+
+        expect(run).toHaveBeenCalledTimes(1);
+        expect((fixture.componentInstance as any).events.length).toBe(1);
+      },
+    );
   });
 
   describe('custom and standard emojis with the same id', () => {

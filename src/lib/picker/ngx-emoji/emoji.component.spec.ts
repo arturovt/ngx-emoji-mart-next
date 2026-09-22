@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, NgZone, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { EmojiComponent } from './emoji.component';
@@ -181,6 +181,42 @@ describe('EmojiComponent', () => {
       expect(fixture.componentInstance).toEqual(
         expect.objectContaining({ fallbackCalls: [{ size: 26, emoji: 'melting_face' }] }),
       );
+    });
+  });
+
+  // In an application with zone.js, entering the Angular zone runs change detection. The events
+  // are handled outside of the zone, and the component enters the zone only for an output that
+  // somebody listens to.
+  describe('Angular zone', () => {
+    const dispatchAll = (fixture: ComponentFixture<unknown>) => {
+      emoji(fixture)!.dispatchEvent(new MouseEvent('mouseenter'));
+      emoji(fixture)!.dispatchEvent(new MouseEvent('mouseleave'));
+      emoji(fixture)!.click();
+    };
+
+    it('should not enter the zone when nobody listens to the outputs', () => {
+      const fixture = createEmoji('<ngx-emoji emoji="+1"/>');
+      // Creating a component and detecting changes in a test enter the zone too.
+      const run = vi.spyOn(TestBed.inject(NgZone), 'run');
+
+      dispatchAll(fixture);
+
+      expect(run).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['mouseenter', '(emojiOver)="events.push(1)"'],
+      ['mouseleave', '(emojiLeave)="events.push(1)"'],
+      ['click', '(emojiClick)="events.push(1)"'],
+    ])('should enter the zone once on %s when the output is observed', (event, output) => {
+      const fixture = createEmoji(`<ngx-emoji emoji="+1" ${output}/>`);
+      const run = vi.spyOn(TestBed.inject(NgZone), 'run');
+
+      dispatchAll(fixture);
+
+      expect(run).toHaveBeenCalledTimes(1);
+      expect(fixture.componentInstance.events.length).toBe(1);
+      expect(event).toBeTruthy();
     });
   });
 });

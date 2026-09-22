@@ -5,6 +5,8 @@ import type { E2EOptions } from './e2e/fixtures';
 export default defineConfig<E2EOptions>({
   testDir: './e2e',
   forbidOnly: !!process.env.CI,
+  // One run of all tests takes less than a minute. A hang must not block for a long time.
+  globalTimeout: 5 * 60 * 1000,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: 'http://localhost:4200',

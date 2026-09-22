@@ -90,10 +90,12 @@ export class PickerComponent implements OnInit, OnDestroy {
   );
   readonly color = input('#ae65c5');
   readonly hideObsolete = input(true);
-  /** all categories shown */
+  /** Categories that are shown before the built-in ones. The picker does not change the list. */
   readonly categories = input<EmojiCategory[]>([]);
   /** used to temporarily draw categories */
   readonly activeCategories = input<EmojiCategory[]>([]);
+  /** All categories that are shown. They are private copies, so no other picker is affected. */
+  protected readonly allCategories = signal<EmojiCategory[]>([]);
   readonly set = input<Emoji['set']>('apple');
   readonly skin = input<Emoji['skin']>(1);
   /** Renders the native unicode emoji */
@@ -194,7 +196,10 @@ export class PickerComponent implements OnInit, OnDestroy {
       ) || this.currentSkin(),
     );
 
-    const allCategories = [...categories];
+    // The category data is shared by all pickers. Work with copies, because the picker changes
+    // the categories that it shows.
+    const allCategories = categories.map(category => ({ ...category }));
+    const shownCategories: EmojiCategory[] = this.categories().map(category => ({ ...category }));
 
     if (this.custom().length > 0) {
       this.CUSTOM_CATEGORY.emojis = this.custom().map(emoji => {
@@ -246,10 +251,10 @@ export class PickerComponent implements OnInit, OnDestroy {
             id: category.id,
           };
 
-          this.categories().push(newCategory);
+          shownCategories.push(newCategory);
         }
       } else {
-        this.categories().push(category);
+        shownCategories.push(category);
       }
     }
 
@@ -262,15 +267,16 @@ export class PickerComponent implements OnInit, OnDestroy {
         : false;
     if (includeRecent && !excludeRecent) {
       this.isRecentHidden.set(false);
-      this.categories().unshift(this.RECENT_CATEGORY);
+      shownCategories.unshift(this.RECENT_CATEGORY);
     }
 
-    const categoriesValue = this.categories();
+    const categoriesValue = shownCategories;
     if (categoriesValue[0]) {
       categoriesValue[0].first = true;
     }
 
     categoriesValue.unshift(this.SEARCH_CATEGORY);
+    this.allCategories.set(categoriesValue);
     this.selected = categoriesValue.filter(category => category.first)[0].name;
 
     // Need to be careful if small number of categories
@@ -283,8 +289,8 @@ export class PickerComponent implements OnInit, OnDestroy {
 
     setTimeout(() => {
       // Restore last category
-      this.categories()[categoriesToLoadFirst - 1].emojis = lastActiveCategoryEmojis;
-      this.setActiveCategories(this.categories());
+      this.allCategories()[categoriesToLoadFirst - 1].emojis = lastActiveCategoryEmojis;
+      this.setActiveCategories(this.allCategories());
       // The `setTimeout` will trigger the change detection, but since we're inside
       // the OnPush component we can run change detection locally starting from this
       // component and going down to the children.
@@ -343,7 +349,7 @@ export class PickerComponent implements OnInit, OnDestroy {
   handleAnchorClick($event: { category: EmojiCategory; index: number }) {
     this.updateCategoriesSize();
     this.selected = $event.category.name;
-    const categoriesValue = this.categories();
+    const categoriesValue = this.allCategories();
     this.setActiveCategories(categoriesValue);
 
     if (this.SEARCH_CATEGORY.emojis) {
@@ -397,13 +403,13 @@ export class PickerComponent implements OnInit, OnDestroy {
       // check scroll is not at bottom
       if (target.scrollTop === 0) {
         // hit the TOP
-        activeCategory = this.categories().find(n => n.first === true);
+        activeCategory = this.allCategories().find(n => n.first === true);
       } else if (target.scrollHeight - target.scrollTop === this.clientHeight) {
         // scrolled to bottom activate last category
-        activeCategory = this.categories()[this.categories().length - 1];
+        activeCategory = this.allCategories()[this.allCategories().length - 1];
       } else {
         // scrolling
-        for (const category of this.categories()) {
+        for (const category of this.allCategories()) {
           const component = this.categoryRefs.find(({ id: idInput }) => {
             const id = idInput();
             return id === category.id;

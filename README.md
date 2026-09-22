@@ -22,7 +22,13 @@ pnpm install ngx-emoji-mart-next
 
 ## Dependencies
 
-Latest version available for each version of Angular
+`ngx-emoji-mart-next` needs Angular 22 or newer.
+
+| Package             | Angular |
+| ------------------- | ------- |
+| ngx-emoji-mart-next | >=22.x  |
+
+The original package [`@ctrl/ngx-emoji-mart`](https://github.com/scttcper/ngx-emoji-mart) supports older versions of Angular. This is the latest version of it for each version of Angular:
 
 | @ctrl/ngx-emoji-mart | Angular   |
 | -------------------- | --------- |

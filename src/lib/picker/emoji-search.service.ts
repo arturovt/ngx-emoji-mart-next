@@ -212,8 +212,13 @@ export class EmojiSearch {
   private getSearchText(emoji: EmojiData): string {
     let text = this.searchTexts.get(emoji);
     if (text === undefined) {
-      // The short names are not part of the text. `id` is the first short name.
-      text = this.buildSearch([], emoji.name, emoji.id, emoji.keywords, emoji.emoticons);
+      text = this.buildSearch(
+        emoji.shortNames,
+        emoji.name,
+        emoji.id,
+        emoji.keywords,
+        emoji.emoticons,
+      );
       this.searchTexts.set(emoji, text);
     }
     return text;

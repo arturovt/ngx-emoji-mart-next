@@ -146,4 +146,14 @@ describe('EmojiSearch', () => {
       },
     ));
   });
+
+  it('can search for a short name that is not the first one', inject(
+    [EmojiSearch],
+    (es: EmojiSearch) => {
+      // `medical_symbol` also has the short name `staff_of_aesculapius`.
+      const ids = es.search('aesculapius')!.map(emoji => emoji.id);
+
+      expect(ids).toEqual(['medical_symbol']);
+    },
+  ));
 });
