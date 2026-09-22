@@ -449,16 +449,16 @@ export class PickerComponent implements OnInit, OnDestroy {
 
   handleEnterKey($event: Event, emoji?: EmojiData): void {
     // Note: the `handleEnterKey` is invoked when the search component dispatches the
-    //       `enterKeyOutsideAngular` event or when any emoji is clicked thus `emojiClickOutsideAngular`
-    //       event is dispatched. Both events are dispatched outside of the Angular zone to prevent
-    //       no-op ticks, basically when users outside of the picker component are not listening
-    //       to any of these events.
+    //       `enterKey` event or when any emoji is clicked thus the `emojiClick` event of
+    //       `emoji-category` is dispatched. Both events are dispatched outside of the Angular zone
+    //       to prevent no-op ticks, basically when users outside of the picker component are not
+    //       listening to any of these events.
 
     if (!emoji) {
       if (this.SEARCH_CATEGORY.emojis !== null && this.SEARCH_CATEGORY.emojis.length) {
         emoji = this.SEARCH_CATEGORY.emojis[0];
         if (emoji) {
-          dispatchInAngularContextIfObserved(this.emojiSelect, this.ngZone, { $event, emoji });
+          this.emojiSelect.emit({ $event, emoji });
         } else {
           return;
         }
@@ -510,10 +510,8 @@ export class PickerComponent implements OnInit, OnDestroy {
   }
 
   handleEmojiClick($event: EmojiEvent) {
-    // Note: we're getting back into the Angular zone because click events on emojis are handled
-    //       outside of the Angular zone.
-    dispatchInAngularContextIfObserved(this.emojiClick, this.ngZone, $event);
-    dispatchInAngularContextIfObserved(this.emojiSelect, this.ngZone, $event);
+    this.emojiClick.emit($event);
+    this.emojiSelect.emit($event);
     this.handleEnterKey($event.$event, $event.emoji);
   }
 
@@ -531,15 +529,3 @@ export class PickerComponent implements OnInit, OnDestroy {
   }
 }
 
-/**
- * This is only a helper function because the same code is being re-used many times.
- */
-function dispatchInAngularContextIfObserved<T>(
-  emitter: EventEmitter<T>,
-  ngZone: NgZone,
-  value: T,
-): void {
-  if (emitter.observed) {
-    ngZone.run(() => emitter.emit(value));
-  }
-}

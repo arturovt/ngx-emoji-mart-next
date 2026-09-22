@@ -348,7 +348,7 @@ describe('PickerComponent state', () => {
     });
 
     it.each(['emojiClick', 'emojiSelect'])(
-      'should enter the zone once when %s is observed',
+      'should still not enter the zone when %s is observed',
       async output => {
         const fixture = createPicker(`<emoji-mart (${output})="events.push(1)"></emoji-mart>`, {
           events: [],
@@ -358,7 +358,7 @@ describe('PickerComponent state', () => {
 
         firstEmoji(fixture).click();
 
-        expect(run).toHaveBeenCalledTimes(1);
+        expect(run).not.toHaveBeenCalled();
         expect((fixture.componentInstance as any).events.length).toBe(1);
       },
     );

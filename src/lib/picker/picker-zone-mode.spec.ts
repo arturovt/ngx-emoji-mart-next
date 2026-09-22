@@ -88,12 +88,12 @@ describe('PickerComponent in an application with zone.js', () => {
     expect(ticks).toBe(0);
   });
 
-  it('should run change detection when an output is observed', async () => {
+  it('should still not run change detection when an output is observed', async () => {
     await start('<emoji-mart (emojiClick)="clicks = clicks + 1"></emoji-mart>');
 
     firstEmoji().click();
     await settleTicks();
 
-    expect(ticks).toBeGreaterThan(0);
+    expect(ticks).toBe(0);
   });
 });

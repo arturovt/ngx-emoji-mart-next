@@ -17,7 +17,7 @@
     <emoji-search
       [i18n]="mergedI18n()"
       (searchResults)="handleSearch($event)"
-      (enterKeyOutsideAngular)="handleEnterKey($event)"
+      (enterKey)="handleEnterKey($event)"
       [include]="include() ?? []"
       [exclude]="exclude() ?? []"
       [custom]="custom()"
@@ -52,9 +52,9 @@
         [emojiBackgroundImageFn]="backgroundImageFn()"
         [emojiImageUrlFn]="imageUrlFn()"
         [emojiUseButton]="useButton()"
-        (emojiOverOutsideAngular)="handleEmojiOver($event)"
-        (emojiLeaveOutsideAngular)="handleEmojiLeave()"
-        (emojiClickOutsideAngular)="handleEmojiClick($event)"
+        (emojiOver)="handleEmojiOver($event)"
+        (emojiLeave)="handleEmojiLeave()"
+        (emojiClick)="handleEmojiClick($event)"
       ></emoji-category>
     }
   </section>

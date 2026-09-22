@@ -57,9 +57,9 @@ import { CUSTOM_EMOJI_KEY_PREFIX, EmojiFrequentlyService } from './emoji-frequen
                   [imageUrlFn]="emojiImageUrlFn()"
                   [hideObsolete]="hideObsolete()"
                   [useButton]="emojiUseButton()"
-                  (emojiOverOutsideAngular)="emojiOverOutsideAngular.emit($event)"
-                  (emojiLeaveOutsideAngular)="emojiLeaveOutsideAngular.emit($event)"
-                  (emojiClickOutsideAngular)="emojiClickOutsideAngular.emit($event)"
+                  (emojiOver)="emojiOver.emit($event)"
+                  (emojiLeave)="emojiLeave.emit($event)"
+                  (emojiClick)="emojiClick.emit($event)"
                 ></ngx-emoji>
               }
             </div>
@@ -80,9 +80,9 @@ import { CUSTOM_EMOJI_KEY_PREFIX, EmojiFrequentlyService } from './emoji-frequen
             [imageUrlFn]="emojiImageUrlFn()"
             [hideObsolete]="hideObsolete()"
             [useButton]="emojiUseButton()"
-            (emojiOverOutsideAngular)="emojiOverOutsideAngular.emit($event)"
-            (emojiLeaveOutsideAngular)="emojiLeaveOutsideAngular.emit($event)"
-            (emojiClickOutsideAngular)="emojiClickOutsideAngular.emit($event)"
+            (emojiOver)="emojiOver.emit($event)"
+            (emojiLeave)="emojiLeave.emit($event)"
+            (emojiClick)="emojiClick.emit($event)"
           ></ngx-emoji>
         }
       }
@@ -146,12 +146,11 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
   readonly emojiImageUrlFn = input<Emoji['imageUrlFn']>();
   readonly emojiUseButton = input<boolean>();
 
-  /**
-   * Note: the suffix is added explicitly so we know the event is dispatched outside of the Angular zone.
-   */
-  @Output() emojiOverOutsideAngular: Emoji['emojiOver'] = new EventEmitter();
-  @Output() emojiLeaveOutsideAngular: Emoji['emojiLeave'] = new EventEmitter();
-  @Output() emojiClickOutsideAngular: Emoji['emojiClick'] = new EventEmitter();
+  // These are always dispatched outside of the Angular zone, so the picker does not run change
+  // detection for an emoji that nobody hovers or clicks over.
+  @Output() emojiOver: Emoji['emojiOver'] = new EventEmitter();
+  @Output() emojiLeave: Emoji['emojiLeave'] = new EventEmitter();
+  @Output() emojiClick: Emoji['emojiClick'] = new EventEmitter();
 
   @ViewChild('container', { static: true }) container!: ElementRef;
   @ViewChild('label', { static: true }) label!: ElementRef;

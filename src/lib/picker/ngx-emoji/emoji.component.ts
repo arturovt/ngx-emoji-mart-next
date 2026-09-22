@@ -110,18 +110,13 @@ export class EmojiComponent implements OnDestroy {
   readonly sheetColumns = input<number>();
   readonly useButton = input<boolean>();
   /**
-   * Note: `emojiOver` and `emojiOverOutsideAngular` are dispatched on the same event (`mouseenter`), but
-   *       for different purposes. The `emojiOverOutsideAngular` event is listened only in `emoji-category`
-   *       component and the category component doesn't care about zone context the callback is being called in.
-   *       The `emojiOver` is for backwards compatibility if anyone is listening to this event explicitly in their code.
+   * Always dispatched outside of the Angular zone, so hovering or clicking an emoji that nobody
+   * listens to does not run change detection. If you change your own state in a handler and need
+   * the view to update, call `ChangeDetectorRef.markForCheck()` yourself.
    */
   @Output() emojiOver: Emoji['emojiOver'] = new EventEmitter();
-  @Output() emojiOverOutsideAngular: Emoji['emojiOver'] = new EventEmitter();
-  /** See comments above, this serves the same purpose. */
   @Output() emojiLeave: Emoji['emojiLeave'] = new EventEmitter();
-  @Output() emojiLeaveOutsideAngular: Emoji['emojiLeave'] = new EventEmitter();
   @Output() emojiClick: Emoji['emojiClick'] = new EventEmitter();
-  @Output() emojiClickOutsideAngular: Emoji['emojiClick'] = new EventEmitter();
 
   // TODO: replace 4.0.3 w/ dynamic get verison from emoji-datasource in package.json
   readonly backgroundImageFn = input<Emoji['backgroundImageFn']>(DEFAULT_BACKGROUNDFN);
@@ -270,36 +265,15 @@ export class EmojiComponent implements OnDestroy {
       );
 
     eventListener$('click').subscribe($event => {
-      const emoji = this.getSanitizedData();
-      this.emojiClickOutsideAngular.emit({ emoji, $event });
-      // Note: this is done for backwards compatibility. We run change detection if developers
-      //       are listening to `emojiClick` in their code. For instance:
-      //       `<ngx-emoji (emojiClick)="..."></ngx-emoji>`.
-      if (this.emojiClick.observed) {
-        this.ngZone.run(() => this.emojiClick.emit({ emoji, $event }));
-      }
+      this.emojiClick.emit({ emoji: this.getSanitizedData(), $event });
     });
 
     eventListener$('mouseenter').subscribe($event => {
-      const emoji = this.getSanitizedData();
-      this.emojiOverOutsideAngular.emit({ emoji, $event });
-      // Note: this is done for backwards compatibility. We run change detection if developers
-      //       are listening to `emojiOver` in their code. For instance:
-      //       `<ngx-emoji (emojiOver)="..."></ngx-emoji>`.
-      if (this.emojiOver.observed) {
-        this.ngZone.run(() => this.emojiOver.emit({ emoji, $event }));
-      }
+      this.emojiOver.emit({ emoji: this.getSanitizedData(), $event });
     });
 
     eventListener$('mouseleave').subscribe($event => {
-      const emoji = this.getSanitizedData();
-      this.emojiLeaveOutsideAngular.emit({ emoji, $event });
-      // Note: this is done for backwards compatibility. We run change detection if developers
-      //       are listening to `emojiLeave` in their code. For instance:
-      //       `<ngx-emoji (emojiLeave)="..."></ngx-emoji>`.
-      if (this.emojiLeave.observed) {
-        this.ngZone.run(() => this.emojiLeave.emit({ emoji, $event }));
-      }
+      this.emojiLeave.emit({ emoji: this.getSanitizedData(), $event });
     });
   }
 }

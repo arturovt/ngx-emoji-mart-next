@@ -208,13 +208,13 @@ describe('EmojiComponent', () => {
       ['mouseenter', '(emojiOver)="events.push(1)"'],
       ['mouseleave', '(emojiLeave)="events.push(1)"'],
       ['click', '(emojiClick)="events.push(1)"'],
-    ])('should enter the zone once on %s when the output is observed', (event, output) => {
+    ])('should still not enter the zone on %s when the output is observed', (event, output) => {
       const fixture = createEmoji(`<ngx-emoji emoji="+1" ${output}/>`);
       const run = vi.spyOn(TestBed.inject(NgZone), 'run');
 
       dispatchAll(fixture);
 
-      expect(run).toHaveBeenCalledTimes(1);
+      expect(run).not.toHaveBeenCalled();
       expect(fixture.componentInstance.events.length).toBe(1);
       expect(event).toBeTruthy();
     });

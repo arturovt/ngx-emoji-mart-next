@@ -76,7 +76,7 @@ export class SearchComponent implements AfterViewInit, OnInit, OnDestroy {
   readonly icons = input.required<{ [key: string]: string }>();
   readonly emojisToShowFilter = input<(x: any) => boolean>();
   @Output() searchResults = new EventEmitter<any[]>();
-  @Output() enterKeyOutsideAngular = new EventEmitter<KeyboardEvent>();
+  @Output() enterKey = new EventEmitter<KeyboardEvent>();
   @ViewChild('inputRef', { static: true }) private inputRef!: ElementRef<HTMLInputElement>;
   readonly isSearching = signal(false);
   readonly icon = computed(() => (this.isSearching() ? this.icons().delete : this.icons().search));
@@ -130,7 +130,7 @@ export class SearchComponent implements AfterViewInit, OnInit, OnDestroy {
           if (!this.query || $event.key !== 'Enter') {
             return;
           }
-          this.enterKeyOutsideAngular.emit($event);
+          this.enterKey.emit($event);
           $event.preventDefault();
         }),
     );
