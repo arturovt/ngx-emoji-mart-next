@@ -18,7 +18,6 @@ import {
   inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Observable, Subject } from 'rxjs';
 
 import { CUSTOM_EMOJI_KEY_PREFIX, EmojiFrequentlyService } from './emoji-frequently.service';
 
@@ -41,7 +40,7 @@ import { CUSTOM_EMOJI_KEY_PREFIX, EmojiFrequentlyService } from './emoji-frequen
 
       @if (virtualize()) {
         <div>
-          @if (filteredEmojis$ | async; as filteredEmojis) {
+          @if (filteredEmojis(); as filteredEmojis) {
             <div>
               @for (emoji of filteredEmojis; track emoji) {
                 <ngx-emoji
@@ -166,8 +165,8 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
     return { ...(display && { display }), ...(minHeight && { minHeight }) };
   });
   readonly labelStyles = computed(() => (this.hasStickyPosition() ? {} : { height: 28 }));
-  private filteredEmojisSubject = new Subject<any[] | null | undefined>();
-  filteredEmojis$: Observable<any[] | null | undefined> = this.filteredEmojisSubject.asObservable();
+  /** The emojis that virtualized mode shows. Only set while the category is near the viewport. */
+  readonly filteredEmojis = signal<any[] | null | undefined>(undefined);
   labelSpanStyles: any = {};
   margin = 0;
   minMargin = 0;
@@ -195,8 +194,6 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
     const perRow = Math.floor(width / (this.emojiSize() + 12));
     this.rows = Math.ceil(this.emojisToDisplay().length / perRow);
     this.minHeight.set(`${this.rows * (this.emojiSize() + 12) + 28}px`);
-
-    this.ref.detectChanges();
 
     this.handleScroll(this.container.nativeElement.parentNode.parentNode.scrollTop);
   }
@@ -229,14 +226,13 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
         parentHeight + (parentHeight + this.virtualizeOffset()) >= top &&
         -height - (parentHeight + this.virtualizeOffset()) <= top
       ) {
-        this.filteredEmojisSubject.next(this.emojisToDisplay());
+        this.filteredEmojis.set(this.emojisToDisplay());
       } else {
-        this.filteredEmojisSubject.next([]);
+        this.filteredEmojis.set([]);
       }
     }
 
     if (margin === this.margin) {
-      this.ref.detectChanges();
       return false;
     }
 
@@ -245,7 +241,6 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
     }
 
     this.margin = margin;
-    this.ref.detectChanges();
     return true;
   }
 
@@ -285,7 +280,6 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
   updateDisplay(display: 'none' | 'block') {
     this.display.set(display);
     this.updateRecentEmojis();
-    this.ref.detectChanges();
   }
 
   private filterEmojis(): any[] {

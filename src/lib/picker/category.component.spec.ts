@@ -2,6 +2,7 @@ import { Component, signal, viewChild } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CategoryComponent } from './category.component';
+import { frame, timeout } from './testing-utils';
 
 describe('CategoryComponent', () => {
   @Component({
@@ -21,6 +22,7 @@ describe('CategoryComponent', () => {
         [emojiForceSize]="false"
         [emojiTooltip]="false"
         [emojiBackgroundImageFn]="backgroundImageFn"
+        [virtualize]="virtualize()"
       />
     `,
     imports: [CategoryComponent],
@@ -29,13 +31,15 @@ describe('CategoryComponent', () => {
     i18n = { categories: { people: 'People' }, notfound: 'Nothing here' };
     emojis = signal<any[] | null>(null);
     sticky = signal(true);
+    virtualize = signal(false);
     backgroundImageFn = () => '';
     category = viewChild.required(CategoryComponent);
   }
 
-  function createCategory(emojis: any[] | null = null) {
+  function createCategory(emojis: any[] | null = null, options: { virtualize?: boolean } = {}) {
     const fixture = TestBed.createComponent(HostComponent);
     fixture.componentInstance.emojis.set(emojis);
+    fixture.componentInstance.virtualize.set(!!options.virtualize);
     fixture.detectChanges();
     return fixture;
   }
@@ -73,25 +77,31 @@ describe('CategoryComponent', () => {
     );
   });
 
-  it('should show and hide the category with `updateDisplay`', () => {
+  it('should show and hide the category with `updateDisplay`', async () => {
     const fixture = createCategory([]);
     const category = fixture.componentInstance.category();
 
     // A search without results shows the category with the message.
     category.updateDisplay('block');
+    await timeout();
+    await frame();
     expect(section(fixture).style.display).toBe('block');
     expect(section(fixture).classList.contains('emoji-mart-no-results')).toBe(true);
 
     category.updateDisplay('none');
+    await timeout();
+    await frame();
     expect(section(fixture).style.display).toBe('none');
   });
 
-  it('should show the emojis that `displayedEmojis` is set to', () => {
+  it('should show the emojis that `displayedEmojis` is set to', async () => {
     const fixture = createCategory([]);
     const category = fixture.componentInstance.category();
 
     category.displayedEmojis.set(['+1']);
     category.updateDisplay('block');
+    await timeout();
+    await frame();
 
     expect(labels(fixture).length).toBe(1);
     expect(section(fixture).classList.contains('emoji-mart-no-results')).toBe(false);
@@ -191,6 +201,44 @@ describe('CategoryComponent', () => {
 
     it('should skip a custom emoji that does not exist', () => {
       expect(createRecent(['custom:unknown', '+1']).length).toBe(1);
+    });
+  });
+
+  describe('virtualize', () => {
+    function createVirtualizedCategory(emojis: any[]) {
+      const fixture = createCategory(emojis, { virtualize: true });
+      const category = fixture.componentInstance.category();
+      const container = category.container.nativeElement as HTMLElement;
+      // `container`'s grandparent is the scrollable element the picker measures against.
+      const parent = container.parentNode!.parentNode as HTMLElement;
+      return { fixture, category, container, parent };
+    }
+
+    function stubLayout(container: HTMLElement, parent: HTMLElement, top: number) {
+      vi.spyOn(container, 'getBoundingClientRect').mockReturnValue({ top, height: 50 } as DOMRect);
+      Object.defineProperty(parent, 'clientHeight', { value: 300, configurable: true });
+    }
+
+    it('should show the emojis when the category is near the viewport', async () => {
+      const { fixture, category, container, parent } = createVirtualizedCategory(['+1', 'grinning']);
+      stubLayout(container, parent, 0);
+
+      category.handleScroll(0);
+      await timeout();
+      await frame();
+
+      expect(labels(fixture).length).toBe(2);
+    });
+
+    it('should hide the emojis when the category is far from the viewport', async () => {
+      const { fixture, category, container, parent } = createVirtualizedCategory(['+1', 'grinning']);
+      stubLayout(container, parent, 5000);
+
+      category.handleScroll(0);
+      await timeout();
+      await frame();
+
+      expect(labels(fixture).length).toBe(0);
     });
   });
 });
