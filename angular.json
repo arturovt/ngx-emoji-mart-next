@@ -17,20 +17,33 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "outputPath": {
-              "base": "dist",
-              "browser": ""
-            },
+            "outputPath": "dist",
             "index": "src/index.html",
             "tsConfig": "tsconfig.app.json",
-            "assets": ["src/favicon.ico", "src/assets"],
-            "styles": ["src/styles.css", "src/lib/picker/picker.css"],
+            "assets": [
+              "src/favicon.ico",
+              "src/assets"
+            ],
+            "styles": [
+              "src/styles.css",
+              "src/lib/picker/picker.css"
+            ],
             "scripts": [],
             "extractLicenses": false,
             "sourceMap": true,
             "optimization": false,
             "namedChunks": true,
-            "browser": "src/main.ts"
+            "browser": "src/main.ts",
+            "server": "src/main.server.ts",
+            "outputMode": "server",
+            "security": {
+              "allowedHosts": [
+                "localhost"
+              ]
+            },
+            "ssr": {
+              "entry": "src/server.ts"
+            }
           },
           "configurations": {
             "production": {
@@ -117,15 +130,24 @@
             "tsConfig": "tsconfig.spec.json",
             "buildTarget": ":build:testing",
             "runner": "vitest",
-            "browsers": ["chromium"],
+            "browsers": [
+              "chromium"
+            ],
             "providersFile": "src/test-providers.ts",
-            "coverageReporters": ["html", "lcov", "text-summary"]
+            "coverageReporters": [
+              "html",
+              "lcov",
+              "text-summary"
+            ]
           }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html"
+            ]
           }
         }
       }

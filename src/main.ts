@@ -2,6 +2,7 @@ import { provideZoneChangeDetection, provideZonelessChangeDetection } from '@ang
 import { bootstrapApplication } from '@angular/platform-browser';
 
 import { AppComponent } from './app/app.component';
+import { appConfig } from './app/app.config';
 
 // The e2e tests set this flag to run the app without `zone.js`.
 const zoneless = !!(window as { __zoneless?: boolean }).__zoneless;
@@ -13,7 +14,10 @@ async function bootstrap() {
   }
 
   await bootstrapApplication(AppComponent, {
-    providers: [zoneless ? provideZonelessChangeDetection() : provideZoneChangeDetection()],
+    providers: [
+      zoneless ? provideZonelessChangeDetection() : provideZoneChangeDetection(),
+      ...appConfig.providers,
+    ],
   });
 }
 
