@@ -1,7 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
@@ -75,7 +74,6 @@ const I18N: any = {
 export class PickerComponent implements OnInit, OnDestroy {
   private ngZone = inject(NgZone);
   private renderer = inject(Renderer2);
-  private ref = inject(ChangeDetectorRef);
   private frequently = inject(EmojiFrequentlyService);
   private platformId = inject(PLATFORM_ID);
 
@@ -154,11 +152,11 @@ export class PickerComponent implements OnInit, OnDestroy {
   scrollHeight = 0;
   clientHeight = 0;
   clientWidth = 0;
-  selected?: string;
+  readonly selected = signal<string | undefined>(undefined);
   nextScroll?: string;
   scrollTop?: number;
   firstRender = true;
-  previewEmoji: EmojiData | null = null;
+  readonly previewEmoji = signal<EmojiData | null>(null);
   animationFrameRequestId: number | null = null;
   NAMESPACE = 'emoji-mart';
   readonly measureScrollbar = signal(0);
@@ -277,7 +275,7 @@ export class PickerComponent implements OnInit, OnDestroy {
 
     categoriesValue.unshift(this.SEARCH_CATEGORY);
     this.allCategories.set(categoriesValue);
-    this.selected = categoriesValue.filter(category => category.first)[0].name;
+    this.selected.set(categoriesValue.filter(category => category.first)[0].name);
 
     // Need to be careful if small number of categories
     const categoriesToLoadFirst = Math.min(categoriesValue.length, 3);
@@ -290,11 +288,9 @@ export class PickerComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       // Restore last category
       this.allCategories()[categoriesToLoadFirst - 1].emojis = lastActiveCategoryEmojis;
+      // `setActiveCategories` writes a new array to `displayedCategories`, which schedules
+      // change detection on its own.
       this.setActiveCategories(this.allCategories());
-      // The `setTimeout` will trigger the change detection, but since we're inside
-      // the OnPush component we can run change detection locally starting from this
-      // component and going down to the children.
-      this.ref.detectChanges();
 
       isPlatformBrowser(this.platformId) &&
         this.ngZone.runOutsideAngular(() => {
@@ -320,17 +316,16 @@ export class PickerComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.scrollListener?.();
-    // This is called here because the component might be destroyed
-    // but there will still be a `requestAnimationFrame` callback in the queue
-    // that calls `detectChanges()` on the `ViewRef`. This will lead to a runtime
-    // exception if the `detectChanges()` is called after the `ViewRef` is destroyed.
+    // This is called here because the component might be destroyed but there will still be a
+    // `requestAnimationFrame` callback in the queue that would otherwise write to `previewEmoji`
+    // after the view is torn down.
     this.cancelAnimationFrame();
   }
 
   setActiveCategories(categoriesToMakeActive: Array<EmojiCategory>) {
     if (this.showSingleCategory()) {
       this.displayedCategories.set(
-        categoriesToMakeActive.filter(x => x.name === this.selected || x === this.SEARCH_CATEGORY),
+        categoriesToMakeActive.filter(x => x.name === this.selected() || x === this.SEARCH_CATEGORY),
       );
     } else {
       this.displayedCategories.set(categoriesToMakeActive);
@@ -348,7 +343,7 @@ export class PickerComponent implements OnInit, OnDestroy {
   }
   handleAnchorClick($event: { category: EmojiCategory; index: number }) {
     this.updateCategoriesSize();
-    this.selected = $event.category.name;
+    this.selected.set($event.category.name);
     const categoriesValue = this.allCategories();
     this.setActiveCategories(categoriesValue);
 
@@ -383,9 +378,8 @@ export class PickerComponent implements OnInit, OnDestroy {
   }
   handleScroll(noSelectionChange = false) {
     if (this.nextScroll) {
-      this.selected = this.nextScroll;
+      this.selected.set(this.nextScroll);
       this.nextScroll = undefined;
-      this.ref.detectChanges();
       return;
     }
     if (!this.scrollRef) {
@@ -424,11 +418,8 @@ export class PickerComponent implements OnInit, OnDestroy {
       this.scrollTop = target.scrollTop;
     }
     // This will allow us to run the change detection only when the category changes.
-    if (!noSelectionChange && activeCategory && activeCategory.name !== this.selected) {
-      this.selected = activeCategory.name;
-      this.ref.detectChanges();
-    } else if (noSelectionChange) {
-      this.ref.detectChanges();
+    if (!noSelectionChange && activeCategory && activeCategory.name !== this.selected()) {
+      this.selected.set(activeCategory.name);
     }
   }
 
@@ -490,9 +481,8 @@ export class PickerComponent implements OnInit, OnDestroy {
       $event.emoji = { ...emojiData };
     }
 
-    this.previewEmoji = $event.emoji;
     this.cancelAnimationFrame();
-    this.ref.detectChanges();
+    this.previewEmoji.set($event.emoji);
   }
 
   handleEmojiLeave() {
@@ -504,8 +494,7 @@ export class PickerComponent implements OnInit, OnDestroy {
     //       This is done explicitly because we don't have to run redundant change detection since we
     //       would still want to leave the Angular zone here when scheduling animation frame.
     this.animationFrameRequestId = requestAnimationFrame(() => {
-      this.previewEmoji = null;
-      this.ref.detectChanges();
+      this.previewEmoji.set(null);
     });
   }
 

@@ -8,7 +8,7 @@
       [categories]="allCategories()"
       (anchorClick)="handleAnchorClick($event)"
       [color]="color()"
-      [selected]="selected"
+      [selected]="selected()"
       [i18n]="mergedI18n()"
       [icons]="mergedCategoriesIcons()"
     ></emoji-mart-anchors>
@@ -62,7 +62,7 @@
     <div class="emoji-mart-bar">
       <emoji-preview
         [title]="title()"
-        [emoji]="previewEmoji"
+        [emoji]="previewEmoji()"
         [idleEmoji]="emoji()"
         [emojiIsNative]="isNative()"
         [emojiSize]="38"

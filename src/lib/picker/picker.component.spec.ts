@@ -31,7 +31,7 @@ describe('PickerComponent', () => {
 
   it('should update preview on `mouseenter` and `mouseleave` but should not trigger change detection', async () => {
     const picker = fixture.debugElement.query(By.directive(PickerComponent));
-    expect(picker.componentInstance.previewEmoji).toEqual(null);
+    expect(picker.componentInstance.previewEmoji()).toEqual(null);
 
     // Query category that has emojis to display (does not have class `emoji-mart-no-results`).
     const emojiMartCategory = document.querySelector(
@@ -41,14 +41,14 @@ describe('PickerComponent', () => {
 
     emoji.dispatchEvent(new MouseEvent('mouseenter'));
 
-    expect(picker.componentInstance.previewEmoji).toBeDefined();
+    expect(picker.componentInstance.previewEmoji()).toBeDefined();
 
     emoji.dispatchEvent(new MouseEvent('mouseleave'));
 
     // The preview is cleared in an animation frame.
     await frame();
 
-    expect(picker.componentInstance.previewEmoji).toEqual(null);
+    expect(picker.componentInstance.previewEmoji()).toEqual(null);
 
     // Let the picker finish the timers that it started when it was created.
     await timeout();
