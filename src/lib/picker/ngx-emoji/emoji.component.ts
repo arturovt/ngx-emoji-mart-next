@@ -11,7 +11,6 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { EMPTY, Subject, fromEvent, switchMap, takeUntil } from 'rxjs';
 
 import { EmojiData } from './data/data.interfaces';
@@ -64,7 +63,7 @@ interface EmojiView {
           [class.emoji-mart-emoji-native]="isNative()"
           [class.emoji-mart-emoji-custom]="view().custom"
         >
-          <span [ngStyle]="view().style">
+          <span [style]="view().style">
             @if (isNative()) {
               {{ view().unified }}
             }
@@ -80,7 +79,7 @@ interface EmojiView {
           [class.emoji-mart-emoji-native]="isNative()"
           [class.emoji-mart-emoji-custom]="view().custom"
         >
-          <span [ngStyle]="view().style">
+          <span [style]="view().style">
             @if (isNative()) {
               {{ view().unified }}
             }
@@ -92,7 +91,6 @@ interface EmojiView {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   preserveWhitespaces: false,
-  imports: [CommonModule],
 })
 export class EmojiComponent implements OnDestroy {
   readonly skin = input<Emoji['skin']>(1);

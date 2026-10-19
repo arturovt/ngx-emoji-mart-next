@@ -1,4 +1,4 @@
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -70,7 +70,7 @@ const I18N: any = {
   templateUrl: './picker.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   preserveWhitespaces: false,
-  imports: [CommonModule, AnchorsComponent, SearchComponent, PreviewComponent, CategoryComponent],
+  imports: [AnchorsComponent, SearchComponent, PreviewComponent, CategoryComponent],
 })
 export class PickerComponent implements OnInit, OnDestroy {
   private ngZone = inject(NgZone);

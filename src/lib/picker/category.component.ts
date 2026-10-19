@@ -17,8 +17,6 @@ import {
   signal,
   inject,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-
 import { CUSTOM_EMOJI_KEY_PREFIX, EmojiFrequentlyService } from './emoji-frequently.service';
 
 @Component({
@@ -29,11 +27,11 @@ import { CUSTOM_EMOJI_KEY_PREFIX, EmojiFrequentlyService } from './emoji-frequen
       class="emoji-mart-category"
       [attr.aria-label]="i18n().categories[id()]"
       [class.emoji-mart-no-results]="noEmojiToDisplay()"
-      [ngStyle]="containerStyles()"
+      [style]="containerStyles()"
     >
-      <div class="emoji-mart-category-label" [ngStyle]="labelStyles()" [attr.data-name]="name()">
+      <div class="emoji-mart-category-label" [style]="labelStyles()" [attr.data-name]="name()">
         <!-- already labeled by the section aria-label -->
-        <span #label [ngStyle]="labelSpanStyles" aria-hidden="true">
+        <span #label [style]="labelSpanStyles" aria-hidden="true">
           {{ i18n().categories[id()] }}
         </span>
       </div>
@@ -112,7 +110,7 @@ import { CUSTOM_EMOJI_KEY_PREFIX, EmojiFrequentlyService } from './emoji-frequen
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   preserveWhitespaces: false,
-  imports: [CommonModule, EmojiComponent],
+  imports: [EmojiComponent],
 })
 export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
   ref = inject(ChangeDetectorRef);
