@@ -17,6 +17,18 @@ export default defineConfig<E2EOptions>({
     { name: 'zone', use: { ...devices['Desktop Chrome'], zoneless: false }, testIgnore: 'ssr.spec.ts' },
     { name: 'zoneless', use: { ...devices['Desktop Chrome'], zoneless: true }, testIgnore: 'ssr.spec.ts' },
     { name: 'ssr', use: { baseURL: `http://localhost:${SSR_PORT}` }, testMatch: 'ssr.spec.ts' },
+    {
+      // Run the same browser tests, but against the server-rendered, hydrated page instead of a
+      // fresh client-side render, to catch anything that only breaks after hydration.
+      name: 'ssr-hydrated-zone',
+      use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${SSR_PORT}`, zoneless: false },
+      testIgnore: 'ssr.spec.ts',
+    },
+    {
+      name: 'ssr-hydrated-zoneless',
+      use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${SSR_PORT}`, zoneless: true },
+      testIgnore: 'ssr.spec.ts',
+    },
   ],
   webServer: [
     {
