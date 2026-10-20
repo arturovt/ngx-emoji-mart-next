@@ -285,14 +285,18 @@ export class PickerComponent implements OnInit, OnDestroy {
     const lastActiveCategoryEmojis = categoriesValue[categoriesToLoadFirst - 1].emojis!.slice();
     categoriesValue[categoriesToLoadFirst - 1].emojis = lastActiveCategoryEmojis.slice(0, 60);
 
-    setTimeout(() => {
-      // Restore last category
-      this.allCategories()[categoriesToLoadFirst - 1].emojis = lastActiveCategoryEmojis;
-      // `setActiveCategories` writes a new array to `displayedCategories`, which schedules
-      // change detection on its own.
-      this.setActiveCategories(this.allCategories());
+    // The trim above is a fast-first-paint trick for the browser. There is no "later" to
+    // restore into on the server, so don't schedule a timer there: it would only add
+    // unnecessary work (and a possible delay, if something is waiting for the app to
+    // become stable) to every SSR request.
+    if (isPlatformBrowser(this.platformId)) {
+      setTimeout(() => {
+        // Restore last category
+        this.allCategories()[categoriesToLoadFirst - 1].emojis = lastActiveCategoryEmojis;
+        // `setActiveCategories` writes a new array to `displayedCategories`, which schedules
+        // change detection on its own.
+        this.setActiveCategories(this.allCategories());
 
-      isPlatformBrowser(this.platformId) &&
         this.ngZone.runOutsideAngular(() => {
           // The `updateCategoriesSize` doesn't change properties that are used
           // in templates, thus this is run in the context of the root zone to avoid
@@ -301,7 +305,8 @@ export class PickerComponent implements OnInit, OnDestroy {
             this.updateCategoriesSize();
           });
         });
-    });
+      });
+    }
 
     this.ngZone.runOutsideAngular(() => {
       // DOM events that are listened by Angular inside the template trigger change detection
