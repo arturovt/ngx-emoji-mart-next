@@ -36,53 +36,55 @@ import { CUSTOM_EMOJI_KEY_PREFIX, EmojiFrequentlyService } from './emoji-frequen
         </span>
       </div>
 
-      @if (virtualize()) {
-        <div>
-          @if (filteredEmojis(); as filteredEmojis) {
-            <div>
-              @for (emoji of filteredEmojis; track emoji) {
-                <ngx-emoji
-                  [emoji]="emoji"
-                  [size]="emojiSize()"
-                  [skin]="emojiSkin()"
-                  [isNative]="emojiIsNative()"
-                  [set]="emojiSet()"
-                  [sheetSize]="emojiSheetSize()"
-                  [forceSize]="emojiForceSize()"
-                  [tooltip]="emojiTooltip()"
-                  [backgroundImageFn]="emojiBackgroundImageFn()"
-                  [imageUrlFn]="emojiImageUrlFn()"
-                  [hideObsolete]="hideObsolete()"
-                  [useButton]="emojiUseButton()"
-                  (emojiOver)="emojiOver.emit($event)"
-                  (emojiLeave)="emojiLeave.emit($event)"
-                  (emojiClick)="emojiClick.emit($event)"
-                ></ngx-emoji>
-              }
-            </div>
+      <div class="emoji-mart-results">
+        @if (virtualize()) {
+          <div>
+            @if (filteredEmojis(); as filteredEmojis) {
+              <div>
+                @for (emoji of filteredEmojis; track emoji) {
+                  <ngx-emoji
+                    [emoji]="emoji"
+                    [size]="emojiSize()"
+                    [skin]="emojiSkin()"
+                    [isNative]="emojiIsNative()"
+                    [set]="emojiSet()"
+                    [sheetSize]="emojiSheetSize()"
+                    [forceSize]="emojiForceSize()"
+                    [tooltip]="emojiTooltip()"
+                    [backgroundImageFn]="emojiBackgroundImageFn()"
+                    [imageUrlFn]="emojiImageUrlFn()"
+                    [hideObsolete]="hideObsolete()"
+                    [useButton]="emojiUseButton()"
+                    (emojiOver)="emojiOver.emit($event)"
+                    (emojiLeave)="emojiLeave.emit($event)"
+                    (emojiClick)="emojiClick.emit($event)"
+                  ></ngx-emoji>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          @for (emoji of emojisToDisplay(); track emoji) {
+            <ngx-emoji
+              [emoji]="emoji"
+              [size]="emojiSize()"
+              [skin]="emojiSkin()"
+              [isNative]="emojiIsNative()"
+              [set]="emojiSet()"
+              [sheetSize]="emojiSheetSize()"
+              [forceSize]="emojiForceSize()"
+              [tooltip]="emojiTooltip()"
+              [backgroundImageFn]="emojiBackgroundImageFn()"
+              [imageUrlFn]="emojiImageUrlFn()"
+              [hideObsolete]="hideObsolete()"
+              [useButton]="emojiUseButton()"
+              (emojiOver)="emojiOver.emit($event)"
+              (emojiLeave)="emojiLeave.emit($event)"
+              (emojiClick)="emojiClick.emit($event)"
+            ></ngx-emoji>
           }
-        </div>
-      } @else {
-        @for (emoji of emojisToDisplay(); track emoji) {
-          <ngx-emoji
-            [emoji]="emoji"
-            [size]="emojiSize()"
-            [skin]="emojiSkin()"
-            [isNative]="emojiIsNative()"
-            [set]="emojiSet()"
-            [sheetSize]="emojiSheetSize()"
-            [forceSize]="emojiForceSize()"
-            [tooltip]="emojiTooltip()"
-            [backgroundImageFn]="emojiBackgroundImageFn()"
-            [imageUrlFn]="emojiImageUrlFn()"
-            [hideObsolete]="hideObsolete()"
-            [useButton]="emojiUseButton()"
-            (emojiOver)="emojiOver.emit($event)"
-            (emojiLeave)="emojiLeave.emit($event)"
-            (emojiClick)="emojiClick.emit($event)"
-          ></ngx-emoji>
         }
-      }
+      </div>
 
       @if (noEmojiToDisplay()) {
         <div>
