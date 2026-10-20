@@ -96,4 +96,39 @@ describe('PickerComponent in an application with zone.js', () => {
 
     expect(ticks).toBe(0);
   });
+
+  it('should report its first stable state before the timer that backfills the trimmed category runs, even with zone.js loaded', async () => {
+    @Component({ template: '<emoji-mart></emoji-mart>', imports: [PickerModule] })
+    class HostComponent {}
+
+    await import('zone.js');
+    app = await createApplication({ providers: [provideZoneChangeDetection()] });
+    host = document.createElement('div');
+    document.body.appendChild(host);
+    const component = createComponent(HostComponent, {
+      environmentInjector: app.injector,
+      hostElement: host,
+    });
+    app.attachView(component.hostView);
+    app.tick();
+
+    // The category is trimmed to a smaller first batch right away, then grown back by a timer a
+    // moment later, purely so the browser gets a chance to paint the smaller batch first. Even
+    // though zone.js patches `setTimeout`, `whenStable()` here does not wait for that timer: it is
+    // driven by Angular's own pending-task tracking, not raw zone macrotask counting. This matters
+    // because code elsewhere in the app (or a future change) might reasonably assume `whenStable()`
+    // means "the view has fully settled" — this documents that it doesn't wait for this timer.
+    const emojiCount = () => host.querySelectorAll('ngx-emoji').length;
+    const countBeforeFirstStable = emojiCount();
+
+    await app.whenStable();
+
+    const countAtFirstStable = emojiCount();
+    expect(countAtFirstStable).toEqual(countBeforeFirstStable);
+
+    await timeout();
+    await frame();
+
+    expect(emojiCount()).toBeGreaterThan(countAtFirstStable);
+  });
 });
