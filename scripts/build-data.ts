@@ -238,6 +238,104 @@ fs.writeFileSync(
   doc
 );
 
+// Split `emojis` into three pieces so a consumer of a single emoji isn't forced to load
+// the whole dataset:
+//  - `emoji-index.ts`: always loaded, tiny. Maps every lookup key (unified code and every
+//    short name) to just enough to resolve and categorize an emoji.
+//  - `data/categories/<id>.ts`: one file per category, the full render data (minus search
+//    keywords/emoticons) for the emoji in that category. Loaded on demand.
+//  - `emoji-keywords.ts`: search-only keywords/emoticons, loaded only by the search feature.
+//
+// Skin-tone modifier components (`datum.category === 'Component'`) aren't part of any
+// category's emoji list (see the `categories[categoryIndex].emojis.push` branch above), so
+// they're excluded here too; they're already captured separately in `skins.ts` for the
+// skin-swatch UI, which doesn't look them up through this index.
+const unifiedToCategoryId: { [unified: string]: string } = {};
+for (const category of categories) {
+  for (const unified of category.emojis || []) {
+    unifiedToCategoryId[unified] = category.id;
+  }
+}
+
+const emojiIndex: { [unified: string]: any } = {};
+const emojiNameToUnified: { [name: string]: string } = {};
+const byCategory: { [categoryId: string]: { [unified: string]: any } } = {};
+const keywordsByUnified: { [unified: string]: { keywords: string[]; emoticons: string[] } } = {};
+
+for (const category of categories) {
+  byCategory[category.id] = {};
+}
+
+for (const datum of emojis) {
+  const categoryId = unifiedToCategoryId[datum.unified];
+  if (!categoryId) {
+    continue;
+  }
+
+  const allNames = [datum.shortName, ...(datum.shortNames || [])];
+
+  emojiIndex[datum.unified] = {
+    category: categoryId,
+    shortNames: allNames,
+    ...(datum.obsoletedBy && { obsoletedBy: datum.obsoletedBy }),
+    ...(datum.obsoletes && { obsoletes: datum.obsoletes })
+  };
+
+  for (const name of allNames) {
+    emojiNameToUnified[name] = datum.unified;
+  }
+
+  const { keywords, emoticons, ...renderData } = datum;
+  byCategory[categoryId][datum.unified] = renderData;
+
+  if ((keywords && keywords.length) || (emoticons && emoticons.length)) {
+    keywordsByUnified[datum.unified] = { keywords: keywords || [], emoticons: emoticons || [] };
+  }
+}
+
+const sEmojiIndex = stringifyObject(emojiIndex, {
+  inlineCharacterLimit: 25,
+  indent: '  '
+});
+const sNameToUnified = stringifyObject(emojiNameToUnified, {
+  inlineCharacterLimit: 25,
+  indent: '  '
+});
+doc = `import { EmojiIndexEntry } from './data.interfaces';
+/** One entry per emoji, keyed by its unified code. */
+export const emojiIndex: { [unified: string]: EmojiIndexEntry } = ${sEmojiIndex};
+/** Every short name (including the primary one) to its unified code. */
+export const emojiNameToUnified: { [name: string]: string } = ${sNameToUnified};
+`;
+fs.writeFileSync(
+  path.join(__dirname, '../src/lib/picker/ngx-emoji/data/emoji-index.ts'),
+  doc
+);
+
+const categoriesDir = path.join(__dirname, '../src/lib/picker/ngx-emoji/data/categories');
+fs.mkdirSync(categoriesDir, { recursive: true });
+for (const categoryId of Object.keys(byCategory)) {
+  const sCategoryData = stringifyObject(byCategory[categoryId], {
+    inlineCharacterLimit: 25,
+    indent: '  '
+  });
+  doc = `import { CompressedEmojiData } from '../data.interfaces';
+export const emojis: { [unified: string]: CompressedEmojiData } = ${sCategoryData};
+`;
+  fs.writeFileSync(path.join(categoriesDir, `${categoryId}.ts`), doc);
+}
+
+const sKeywords = stringifyObject(keywordsByUnified, {
+  inlineCharacterLimit: 25,
+  indent: '  '
+});
+doc = `export const emojiKeywords: { [unified: string]: { keywords: string[]; emoticons: string[] } } = ${sKeywords};
+`;
+fs.writeFileSync(
+  path.join(__dirname, '../src/lib/picker/ngx-emoji/data/emoji-keywords.ts'),
+  doc
+);
+
 // const sShortNames = stringifyObject(short_names, {
 //   inlineCharacterLimit: 25,
 //   indent: '  ',

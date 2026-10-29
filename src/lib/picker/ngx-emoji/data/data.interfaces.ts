@@ -8,6 +8,20 @@ export interface EmojiCategory {
   first?: boolean;
 }
 
+/**
+ * The always-loaded lookup entry for one emoji, keyed by its unified code (see
+ * `emojiIndex` in `emoji-index.ts`). Carries only what's needed to resolve an id and make
+ * synchronous existence/filtering decisions, or render a native emoji at the default skin
+ * tone, without loading that emoji's category chunk. Every short name also resolves to the
+ * same unified code via `emojiNameToUnified`, so this doesn't need to be duplicated per name.
+ */
+export interface EmojiIndexEntry {
+  category: string;
+  shortNames: string[];
+  obsoletedBy?: string;
+  obsoletes?: string;
+}
+
 export interface CompressedEmojiData {
   name: string;
   unified: string;
