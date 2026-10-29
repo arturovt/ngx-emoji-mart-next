@@ -10,6 +10,7 @@ import {
   computed,
   inject,
   input,
+  resource,
 } from '@angular/core';
 import { EMPTY, Subject, fromEvent, switchMap, takeUntil } from 'rxjs';
 
@@ -52,42 +53,52 @@ interface EmojiView {
 @Component({
   selector: 'ngx-emoji',
   template: `
-    @let _view = view();
-    @let _isNative = isNative();
-    @if (_view.isVisible) {
-      @if (useButton()) {
-        <button
-          #button
-          type="button"
-          [attr.title]="_view.title"
-          [attr.aria-label]="_view.label"
-          class="emoji-mart-emoji"
-          [class.emoji-mart-emoji-native]="_isNative"
-          [class.emoji-mart-emoji-custom]="_view.custom"
-        >
-          <span [style]="_view.style">
-            @if (_isNative) {
-              {{ _view.unified }}
-            }
-            <ng-content></ng-content>
+    @if (baseData.isLoading() && !baseData.hasValue()) {
+      <!-- Same footprint as the eventual emoji, so there's no layout shift once it resolves. -->
+      <span
+        class="emoji-mart-emoji-loading"
+        [style.display]="'inline-block'"
+        [style.width.px]="size()"
+        [style.height.px]="size()"
+      ></span>
+    } @else {
+      @let _view = view();
+      @let _isNative = isNative();
+      @if (_view.isVisible) {
+        @if (useButton()) {
+          <button
+            #button
+            type="button"
+            [attr.title]="_view.title"
+            [attr.aria-label]="_view.label"
+            class="emoji-mart-emoji"
+            [class.emoji-mart-emoji-native]="_isNative"
+            [class.emoji-mart-emoji-custom]="_view.custom"
+          >
+            <span [style]="_view.style">
+              @if (_isNative) {
+                {{ _view.unified }}
+              }
+              <ng-content></ng-content>
+            </span>
+          </button>
+        } @else {
+          <span
+            #button
+            [attr.title]="_view.title"
+            [attr.aria-label]="_view.label"
+            class="emoji-mart-emoji"
+            [class.emoji-mart-emoji-native]="_isNative"
+            [class.emoji-mart-emoji-custom]="_view.custom"
+          >
+            <span [style]="_view.style">
+              @if (_isNative) {
+                {{ _view.unified }}
+              }
+              <ng-content></ng-content>
+            </span>
           </span>
-        </button>
-      } @else {
-        <span
-          #button
-          [attr.title]="_view.title"
-          [attr.aria-label]="_view.label"
-          class="emoji-mart-emoji"
-          [class.emoji-mart-emoji-native]="_isNative"
-          [class.emoji-mart-emoji-custom]="_view.custom"
-        >
-          <span [style]="_view.style">
-            @if (_isNative) {
-              {{ _view.unified }}
-            }
-            <ng-content></ng-content>
-          </span>
-        </span>
+        }
       }
     }
   `,
@@ -141,12 +152,54 @@ export class EmojiComponent implements OnDestroy {
   private readonly ngZone = inject(NgZone);
   private readonly emojiService = inject(EmojiService);
 
+  /**
+   * The one genuinely async dependency: resolving `emoji()` to its category and loading that
+   * category's chunk (cached, so other `<ngx-emoji>` from the same category reuse it). Does not
+   * depend on `skin()`/`set()` — those are applied afterward, in `resolvedData`, so switching
+   * skin tone never re-triggers a load.
+   */
+  protected readonly baseData = resource<EmojiData | null, Emoji['emoji'] | undefined>({
+    params: () => this.emoji() || undefined,
+    loader: async ({ params }) => {
+      const resolved = this.emojiService.resolveIndexEntry(params);
+      if (resolved) {
+        return this.emojiService.loadBaseData(resolved.unified);
+      }
+      if (typeof params === 'string') {
+        // An id that isn't a known standard emoji: matches `EmojiService.getData()`'s own
+        // behavior for strings (unlike objects, a string never falls back to "custom").
+        return null;
+      }
+      // An object that isn't a resolvable standard emoji: treat it as a custom emoji.
+      const custom = params as EmojiData;
+      custom.custom = true;
+      return custom;
+    },
+    // No `id` here: a static id is shared TransferState-wide, and with many sibling
+    // `<ngx-emoji>` (one `@for` iteration each, all rendering different emoji) that caused real
+    // hydration bugs — the client picked up a different sibling's cached value. Without `id`,
+    // this resource just re-loads client-side after hydration (cheap: the category chunk is
+    // almost always already cached from the server's own load of the same category).
+  });
+
+  /** `baseData`'s value with the current `skin()`/`set()` applied. `null` while loading, on an
+   * unknown id, or if `baseData` errored (reading `.value()` in that state would throw). */
+  private readonly resolvedData = computed<EmojiData | null>(() => {
+    if (this.baseData.status() === 'error') {
+      return null;
+    }
+    const base = this.baseData.value();
+    if (!base) {
+      return null;
+    }
+    const resolved = this.emojiService.resolveIndexEntry(this.emoji());
+    const skin = resolved?.skinOverride ?? this.skin();
+    return this.emojiService.applySkinVariation(base, skin, this.set());
+  });
+
   protected readonly view = computed<EmojiView>(() => {
     const hidden: EmojiView = { isVisible: false, custom: false, label: '' };
-    if (!this.emoji()) {
-      return hidden;
-    }
-    const data = this.getData();
+    const data = this.resolvedData();
     if (!data) {
       return hidden;
     }
@@ -212,7 +265,7 @@ export class EmojiComponent implements OnDestroy {
           this.sheetRows(),
           this.backgroundImageFn(),
           this.sheetColumns(),
-          this.imageUrlFn()?.(this.getData()),
+          this.imageUrlFn()?.(data),
         );
       }
     }
@@ -248,12 +301,18 @@ export class EmojiComponent implements OnDestroy {
     };
   }
 
-  getData() {
-    return this.emojiService.getData(this.emoji(), this.skin(), this.set());
+  /**
+   * The emoji's resolved data, with the current skin tone applied. Synchronous, reading
+   * `baseData`'s already-resolved value — by the time this is callable from a mouse event (the
+   * element only exists once `view().isVisible` is true), the data has necessarily loaded.
+   * `null` if called before that, or for an unknown id.
+   */
+  getData(): EmojiData | null {
+    return this.resolvedData();
   }
 
-  getSanitizedData(): EmojiData {
-    return this.emojiService.getSanitizedData(this.emoji(), this.skin(), this.set()) as EmojiData;
+  getSanitizedData(): EmojiData | null {
+    return this.emojiService.sanitize(this.resolvedData());
   }
 
   private setupMouseListeners(): void {
@@ -264,16 +323,27 @@ export class EmojiComponent implements OnDestroy {
         takeUntil(this.destroy$),
       );
 
+    // The element these listen on only exists once `view().isVisible` is true, which requires
+    // `getSanitizedData()` to already be resolved — the null case isn't expected to happen.
     eventListener$('click').subscribe($event => {
-      this.emojiClick.emit({ emoji: this.getSanitizedData(), $event });
+      const emoji = this.getSanitizedData();
+      if (emoji) {
+        this.emojiClick.emit({ emoji, $event });
+      }
     });
 
     eventListener$('mouseenter').subscribe($event => {
-      this.emojiOver.emit({ emoji: this.getSanitizedData(), $event });
+      const emoji = this.getSanitizedData();
+      if (emoji) {
+        this.emojiOver.emit({ emoji, $event });
+      }
     });
 
     eventListener$('mouseleave').subscribe($event => {
-      this.emojiLeave.emit({ emoji: this.getSanitizedData(), $event });
+      const emoji = this.getSanitizedData();
+      if (emoji) {
+        this.emojiLeave.emit({ emoji, $event });
+      }
     });
   }
 }

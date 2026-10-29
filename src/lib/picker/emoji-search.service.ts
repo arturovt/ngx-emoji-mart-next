@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, PendingTasks, inject, signal } from '@angular/core';
 
 import { categories, EmojiData, EmojiService } from 'ngx-emoji-mart-next/ngx-emoji';
 import { CUSTOM_EMOJI_KEY_PREFIX } from './emoji-frequently.service';
@@ -23,17 +23,45 @@ interface SearchEntry {
 @Injectable({ providedIn: 'root' })
 export class EmojiSearch {
   private emojiService = inject(EmojiService);
+  private pendingTasks = inject(PendingTasks);
 
-  originalPool: any = {};
+  originalPool: { [key: string]: EmojiData } = {};
   index: SearchIndex = {};
-  emojisList: any = {};
+  emojisList: { [key: string]: EmojiData | null } = {};
   emoticonsList: { [key: string]: string } = {};
 
-  private readonly entries = new Map<string, SearchEntry>();
+  private readonly entries = new Map<string, Promise<SearchEntry>>();
   private readonly searchTexts = new WeakMap<EmojiData, string>();
+  /**
+   * Everything the service needs is loaded lazily, on first `search()` call, not eagerly here in
+   * the constructor: this service is injected (and so constructed) as soon as `<emoji-search>`
+   * mounts, which is the moment the picker mounts with the default `enableSearch=true` —
+   * regardless of whether anyone actually searches.
+   */
+  private ready?: Promise<void>;
 
-  constructor() {
-    for (const emojiData of this.emojiService.emojis) {
+  /** True while the first `search()` call's full-dataset load is in flight. */
+  readonly isLoading = signal(false);
+
+  private ensureReady(): Promise<void> {
+    if (!this.ready) {
+      this.isLoading.set(true);
+      // Marks the app itself as not-yet-stable for the duration of this load, the same way a
+      // `resource()`'s loader does — without this, SSR could serialize before this resolves, and
+      // `ApplicationRef.whenStable()`/`ComponentFixture.whenStable()` wouldn't wait for it either.
+      const removePendingTask = this.pendingTasks.add();
+      this.ready = this.load().finally(() => {
+        this.isLoading.set(false);
+        removePendingTask();
+      });
+    }
+    return this.ready;
+  }
+
+  private async load(): Promise<void> {
+    const allEmojis = await this.emojiService.loadAllCategories();
+
+    for (const emojiData of allEmojis) {
       const { shortNames, emoticons } = emojiData;
       const id = shortNames[0];
 
@@ -45,27 +73,29 @@ export class EmojiSearch {
         this.emoticonsList[emoticon] = id;
       }
 
-      this.emojisList[id] = this.emojiService.getSanitizedData(id);
+      this.emojisList[id] = await this.emojiService.getSanitizedData(id);
       this.originalPool[id] = emojiData;
     }
   }
 
-  search(
+  async search(
     value: string,
     emojisToShowFilter?: (x: any) => boolean,
     maxResults = 75,
     include: any[] = [],
     exclude: any[] = [],
     custom: any[] = [],
-  ): EmojiData[] | null {
+  ): Promise<EmojiData[] | null> {
+    await this.ensureReady();
+
     let results: EmojiData[] | undefined;
 
     if (value.length) {
       if (value === '-' || value === '-1') {
-        return [this.emojisList['-1']];
+        return [this.emojisList['-1']!];
       }
       if (value === '+' || value === '+1') {
-        return [this.emojisList['+1']];
+        return [this.emojisList['+1']!];
       }
 
       let values = value.toLowerCase().split(/[\s|,|\-|_]+/);
@@ -74,7 +104,7 @@ export class EmojiSearch {
         values = [values[0], values[1]];
       }
 
-      const entry = this.getEntry(include, exclude, custom);
+      const entry = await this.getEntry(include, exclude, custom);
       const allResults = values.map(v => this.searchEntry(entry, v)).filter(a => a);
 
       if (allResults.length > 1) {
@@ -91,7 +121,7 @@ export class EmojiSearch {
         results = results.filter((result: EmojiData) => {
           if (result && result.id) {
             return emojisToShowFilter(
-              result.custom ? undefined : this.emojiService.names[result.id],
+              result.custom ? undefined : this.emojiService.getCachedBaseData(result.id),
             );
           }
           return false;
@@ -109,9 +139,9 @@ export class EmojiSearch {
    * The emojis and the cached results are kept for each combination of `include`, `exclude` and
    * custom emojis. This way a call never gets the results of another combination.
    */
-  private getEntry(include: any[], exclude: any[], custom: any[]): SearchEntry {
+  private getEntry(include: any[], exclude: any[], custom: any[]): Promise<SearchEntry> {
     if (!include.length && !exclude.length && !custom.length) {
-      return { pool: this.originalPool, list: this.emojisList, index: this.index };
+      return Promise.resolve({ pool: this.originalPool, list: this.emojisList as any, index: this.index });
     }
 
     const signature = JSON.stringify([include, exclude, custom]);
@@ -123,7 +153,7 @@ export class EmojiSearch {
     return entry;
   }
 
-  private createEntry(include: any[], exclude: any[], custom: any[]): SearchEntry {
+  private async createEntry(include: any[], exclude: any[], custom: any[]): Promise<SearchEntry> {
     let pool: { [key: string]: EmojiData };
 
     if (include.length || exclude.length) {
@@ -140,7 +170,7 @@ export class EmojiSearch {
         for (const emojiId of category.emojis || []) {
           // Need to make sure that pool gets keyed
           // with the correct id, which is why we call emojiService.getData below
-          const emoji = this.emojiService.getData(emojiId);
+          const emoji = await this.emojiService.getData(emojiId);
           if (emoji) {
             pool[emoji.id] = emoji;
           }
@@ -150,7 +180,7 @@ export class EmojiSearch {
       pool = { ...this.originalPool };
     }
 
-    const list: { [key: string]: EmojiData } = { ...this.emojisList };
+    const list: { [key: string]: EmojiData } = { ...this.emojisList } as any;
     const customIsIncluded = include.length ? include.indexOf('custom') > -1 : true;
     const customIsExcluded = exclude.length ? exclude.indexOf('custom') > -1 : false;
 
@@ -162,8 +192,8 @@ export class EmojiSearch {
 
         if (id && !pool[key]) {
           const data = { ...emoji, id, custom: true };
-          pool[key] = this.emojiService.getData(data)!;
-          list[key] = this.emojiService.getSanitizedData(data)!;
+          pool[key] = (await this.emojiService.getData(data))!;
+          list[key] = (await this.emojiService.getSanitizedData(data))!;
         }
       }
     }

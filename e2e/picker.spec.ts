@@ -40,7 +40,12 @@ test.describe('Emoji picker', () => {
   test('should update preview emoji when emoji is hovered', async ({ page }) => {
     await search(page).fill('thumbs up');
 
-    const emoji = page.locator('.emoji-mart-scroll ngx-emoji:visible span').first();
+    // Each `<ngx-emoji>` briefly shows a loading placeholder (no aria-label) on its very first
+    // render, even once its data is already cached — matching by aria-label, not DOM position,
+    // avoids a race against that placeholder.
+    const emoji = page
+      .locator('.emoji-mart-scroll .emoji-mart-emoji[aria-label*="thumbsup"] span')
+      .first();
     const preview = page.locator('.emoji-mart-preview:visible');
 
     await emoji.dispatchEvent('mouseenter');

@@ -11,6 +11,7 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
     name: 'Smiling Face with Open Mouth',
     unified: '1F603',
     text: ':)',
+    emoticons: ['=)', '=-)'],
     sheet: [32, 23],
     shortName: 'smiley'
   },
@@ -18,6 +19,7 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
     name: 'Smiling Face with Open Mouth and Smiling Eyes',
     unified: '1F604',
     text: ':)',
+    emoticons: ['C:', 'c:', ':D', ':-D'],
     sheet: [32, 24],
     shortName: 'smile'
   },
@@ -30,6 +32,7 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
   '1F606': {
     name: 'Smiling Face with Open Mouth and Tightly-Closed Eyes',
     unified: '1F606',
+    emoticons: [':>', ':->'],
     sheet: [32, 26],
     shortNames: ['satisfied'],
     shortName: 'laughing'
@@ -55,6 +58,7 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
   '1F642': {
     name: 'Slightly Smiling Face',
     unified: '1F642',
+    emoticons: [':)', '(:', ':-)'],
     sheet: [33, 28],
     shortName: 'slightly_smiling_face'
   },
@@ -75,6 +79,7 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
     name: 'Winking Face',
     unified: '1F609',
     text: ';)',
+    emoticons: [';)', ';-)'],
     sheet: [32, 29],
     shortName: 'wink'
   },
@@ -115,6 +120,7 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
   '1F618': {
     name: 'Face Throwing a Kiss',
     unified: '1F618',
+    emoticons: [':*', ':-*'],
     sheet: [32, 44],
     shortName: 'kissing_heart'
   },
@@ -158,6 +164,14 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
     name: 'Face with Stuck-out Tongue',
     unified: '1F61B',
     text: ':p',
+    emoticons: [
+      ':p',
+      ':-p',
+      ':P',
+      ':-P',
+      ':b',
+      ':-b'
+    ],
     sheet: [32, 47],
     shortName: 'stuck_out_tongue'
   },
@@ -165,6 +179,14 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
     name: 'Face with Stuck-out Tongue and Winking Eye',
     unified: '1F61C',
     text: ';p',
+    emoticons: [
+      ';p',
+      ';-p',
+      ';b',
+      ';-b',
+      ';P',
+      ';-P'
+    ],
     sheet: [32, 48],
     shortName: 'stuck_out_tongue_winking_eye'
   },
@@ -258,6 +280,7 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
   '1F610': {
     name: 'Neutral Face',
     unified: '1F610',
+    emoticons: [':|', ':-|'],
     sheet: [32, 36],
     shortName: 'neutral_face'
   },
@@ -455,6 +478,7 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
   '1F60E': {
     name: 'Smiling Face with Sunglasses',
     unified: '1F60E',
+    emoticons: ['8)'],
     sheet: [32, 34],
     shortName: 'sunglasses'
   },
@@ -473,6 +497,12 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
   '1F615': {
     name: 'Confused Face',
     unified: '1F615',
+    emoticons: [
+      ':\\\\',
+      ':-\\\\',
+      ':/',
+      ':-/'
+    ],
     sheet: [32, 41],
     shortName: 'confused'
   },
@@ -504,6 +534,12 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
   '1F62E': {
     name: 'Face with Open Mouth',
     unified: '1F62E',
+    emoticons: [
+      ':o',
+      ':-o',
+      ':O',
+      ':-O'
+    ],
     sheet: [33, 6],
     shortName: 'open_mouth'
   },
@@ -547,6 +583,7 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
   '1F627': {
     name: 'Anguished Face',
     unified: '1F627',
+    emoticons: ['D:'],
     sheet: [32, 59],
     shortName: 'anguished'
   },
@@ -572,6 +609,7 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
     name: 'Crying Face',
     unified: '1F622',
     text: ':\'(',
+    emoticons: [':\'('],
     sheet: [32, 54],
     shortName: 'cry'
   },
@@ -604,6 +642,7 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
     name: 'Disappointed Face',
     unified: '1F61E',
     text: ':(',
+    emoticons: ['):', ':(', ':-('],
     sheet: [32, 50],
     shortName: 'disappointed'
   },
@@ -646,6 +685,7 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
   '1F620': {
     name: 'Angry Face',
     unified: '1F620',
+    emoticons: ['>:(', '>:-('],
     sheet: [32, 52],
     shortName: 'angry'
   },
@@ -873,6 +913,7 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
     name: 'Broken Heart',
     unified: '1F494',
     text: '</3',
+    emoticons: ['</3'],
     sheet: [27, 35],
     shortName: 'broken_heart'
   },
@@ -894,6 +935,7 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
     name: 'Heavy Black Heart',
     unified: '2764-FE0F',
     text: '<3',
+    emoticons: ['<3'],
     sheet: [59, 10],
     shortName: 'heart'
   },
