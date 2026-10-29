@@ -6,21 +6,23 @@ import { EmojiCategory } from 'ngx-emoji-mart-next/ngx-emoji';
   selector: 'emoji-mart-anchors',
   template: `
     <div class="emoji-mart-anchors">
+      @let _color = color();
+      @let _selected = selected();
       @for (category of categories(); track category.id; let idx = $index) {
         @if (category.anchor !== false) {
           <span
             [attr.title]="i18n().categories[category.id]"
             (click)="this.handleClick($event, idx)"
             class="emoji-mart-anchor"
-            [class.emoji-mart-anchor-selected]="category.name === selected()"
-            [style.color]="category.name === selected() ? color() : null"
+            [class.emoji-mart-anchor-selected]="category.name === _selected"
+            [style.color]="category.name === _selected ? _color : null"
           >
             <div>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
                 <path [attr.d]="icons()[category.id]" />
               </svg>
             </div>
-            <span class="emoji-mart-anchor-bar" [style.background-color]="color()"></span>
+            <span class="emoji-mart-anchor-bar" [style.background-color]="_color"></span>
           </span>
         }
       }

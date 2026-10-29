@@ -52,20 +52,22 @@ interface EmojiView {
 @Component({
   selector: 'ngx-emoji',
   template: `
-    @if (view().isVisible) {
+    @let _view = view();
+    @let _isNative = isNative();
+    @if (_view.isVisible) {
       @if (useButton()) {
         <button
           #button
           type="button"
-          [attr.title]="view().title"
-          [attr.aria-label]="view().label"
+          [attr.title]="_view.title"
+          [attr.aria-label]="_view.label"
           class="emoji-mart-emoji"
-          [class.emoji-mart-emoji-native]="isNative()"
-          [class.emoji-mart-emoji-custom]="view().custom"
+          [class.emoji-mart-emoji-native]="_isNative"
+          [class.emoji-mart-emoji-custom]="_view.custom"
         >
-          <span [style]="view().style">
-            @if (isNative()) {
-              {{ view().unified }}
+          <span [style]="_view.style">
+            @if (_isNative) {
+              {{ _view.unified }}
             }
             <ng-content></ng-content>
           </span>
@@ -73,15 +75,15 @@ interface EmojiView {
       } @else {
         <span
           #button
-          [attr.title]="view().title"
-          [attr.aria-label]="view().label"
+          [attr.title]="_view.title"
+          [attr.aria-label]="_view.label"
           class="emoji-mart-emoji"
-          [class.emoji-mart-emoji-native]="isNative()"
-          [class.emoji-mart-emoji-custom]="view().custom"
+          [class.emoji-mart-emoji-native]="_isNative"
+          [class.emoji-mart-emoji-custom]="_view.custom"
         >
-          <span [style]="view().style">
-            @if (isNative()) {
-              {{ view().unified }}
+          <span [style]="_view.style">
+            @if (_isNative) {
+              {{ _view.unified }}
             }
             <ng-content></ng-content>
           </span>

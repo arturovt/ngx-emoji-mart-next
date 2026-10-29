@@ -14,26 +14,35 @@ import { SkinComponent } from './skins.component';
 @Component({
   selector: 'emoji-preview',
   template: `
-    @if (emoji() && emojiData()) {
+    @let _emoji = emoji();
+    @let _emojiData = emojiData();
+    @let _idleEmoji = idleEmoji();
+    @let _emojiIsNative = emojiIsNative();
+    @let _emojiSkin = emojiSkin();
+    @let _emojiSet = emojiSet();
+    @let _emojiBackgroundImageFn = emojiBackgroundImageFn();
+    @let _emojiImageUrlFn = emojiImageUrlFn();
+
+    @if (_emoji && _emojiData) {
       <div class="emoji-mart-preview">
         <div class="emoji-mart-preview-emoji">
           <ngx-emoji
-            [emoji]="emoji()"
+            [emoji]="_emoji"
             [size]="38"
-            [isNative]="emojiIsNative()"
-            [skin]="emojiSkin()"
+            [isNative]="_emojiIsNative"
+            [skin]="_emojiSkin"
             [size]="emojiSize()"
-            [set]="emojiSet()"
+            [set]="_emojiSet"
             [sheetSize]="emojiSheetSize()"
-            [backgroundImageFn]="emojiBackgroundImageFn()"
-            [imageUrlFn]="emojiImageUrlFn()"
+            [backgroundImageFn]="_emojiBackgroundImageFn"
+            [imageUrlFn]="_emojiImageUrlFn"
           ></ngx-emoji>
         </div>
 
         <div class="emoji-mart-preview-data">
-          <div class="emoji-mart-preview-name">{{ emojiData().name }}</div>
+          <div class="emoji-mart-preview-name">{{ _emojiData.name }}</div>
           <div class="emoji-mart-preview-shortname">
-            @for (short_name of emojiData().shortNames; track $index) {
+            @for (short_name of _emojiData.shortNames; track $index) {
               <span class="emoji-mart-preview-shortname"> :{{ short_name }}: </span>
             }
           </div>
@@ -48,17 +57,17 @@ import { SkinComponent } from './skins.component';
       </div>
     }
 
-    <div class="emoji-mart-preview" [hidden]="emoji()">
+    <div class="emoji-mart-preview" [hidden]="_emoji">
       <div class="emoji-mart-preview-emoji">
-        @if (idleEmoji() && idleEmoji().length) {
+        @if (_idleEmoji && _idleEmoji.length) {
           <ngx-emoji
-            [isNative]="emojiIsNative()"
-            [skin]="emojiSkin()"
-            [set]="emojiSet()"
-            [emoji]="idleEmoji()"
-            [backgroundImageFn]="emojiBackgroundImageFn()"
+            [isNative]="_emojiIsNative"
+            [skin]="_emojiSkin"
+            [set]="_emojiSet"
+            [emoji]="_idleEmoji"
+            [backgroundImageFn]="_emojiBackgroundImageFn"
             [size]="38"
-            [imageUrlFn]="emojiImageUrlFn()"
+            [imageUrlFn]="_emojiImageUrlFn"
           ></ngx-emoji>
         }
       </div>
@@ -69,7 +78,7 @@ import { SkinComponent } from './skins.component';
 
       <div class="emoji-mart-preview-skins">
         <emoji-skins
-          [skin]="emojiSkin()"
+          [skin]="_emojiSkin"
           (changeSkin)="skinChange.emit($event)"
           [i18n]="i18n()"
         ></emoji-skins>

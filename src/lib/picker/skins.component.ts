@@ -6,6 +6,7 @@ import { Emoji } from 'ngx-emoji-mart-next/ngx-emoji';
   selector: 'emoji-skins',
   template: `
     <section class="emoji-mart-skin-swatches" [class.opened]="opened">
+      @let _i18n = i18n();
       @for (skinTone of skinTones; track skinTone) {
         <span class="emoji-mart-skin-swatch" [class.selected]="skinTone === skin()">
           <span
@@ -19,8 +20,8 @@ import { Emoji } from 'ngx-emoji-mart-next/ngx-emoji';
             [attr.aria-pressed]="pressed(skinTone)"
             [attr.aria-haspopup]="!!isSelected(skinTone)"
             [attr.aria-expanded]="expanded(skinTone)"
-            [attr.aria-label]="i18n().skintones[skinTone]"
-            [attr.title]="i18n().skintones[skinTone]"
+            [attr.aria-label]="_i18n.skintones[skinTone]"
+            [attr.title]="_i18n.skintones[skinTone]"
           ></span>
         </span>
       }

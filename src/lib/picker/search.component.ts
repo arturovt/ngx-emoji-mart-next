@@ -24,11 +24,12 @@ let id = 0;
   selector: 'emoji-search',
   template: `
     <div class="emoji-mart-search">
+      @let _i18n = i18n();
       <input
         [id]="inputId"
         #inputRef
         type="search"
-        [placeholder]="i18n().search"
+        [placeholder]="_i18n.search"
         [autofocus]="autoFocus()"
         [(ngModel)]="query"
         (ngModelChange)="handleChange()"
@@ -38,7 +39,7 @@ let id = 0;
       http://www.maxability.co.in/2016/01/placeholder-attribute-and-why-it-is-not-accessible/
       -->
       <label class="emoji-mart-sr-only" [htmlFor]="inputId">
-        {{ i18n().search }}
+        {{ _i18n.search }}
       </label>
       <button
         type="button"
@@ -46,7 +47,7 @@ let id = 0;
         (click)="clear()"
         (keyup.enter)="clear()"
         [disabled]="!isSearching()"
-        [attr.aria-label]="i18n().clear"
+        [attr.aria-label]="_i18n.clear"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

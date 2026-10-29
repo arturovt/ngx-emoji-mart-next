@@ -1,3 +1,11 @@
+@let _isNative = isNative();
+@let _mergedI18n = mergedI18n();
+@let _currentSkin = currentSkin();
+@let _set = set();
+@let _sheetSize = sheetSize();
+@let _backgroundImageFn = backgroundImageFn();
+@let _imageUrlFn = imageUrlFn();
+
 <section
   class="emoji-mart {{ darkMode() ? 'emoji-mart-dark' : '' }}"
   [style.width]="width()"
@@ -9,13 +17,13 @@
       (anchorClick)="handleAnchorClick($event)"
       [color]="color()"
       [selected]="selected()"
-      [i18n]="mergedI18n()"
+      [i18n]="_mergedI18n"
       [icons]="mergedCategoriesIcons()"
     ></emoji-mart-anchors>
   </div>
   @if (enableSearch()) {
     <emoji-search
-      [i18n]="mergedI18n()"
+      [i18n]="_mergedI18n"
       (searchResults)="handleSearch($event)"
       (enterKey)="handleEnterKey($event)"
       [include]="include() ?? []"
@@ -26,7 +34,7 @@
       [emojisToShowFilter]="emojisToShowFilter()"
     ></emoji-search>
   }
-  <section #scrollRef class="emoji-mart-scroll" [attr.aria-label]="mergedI18n().emojilist">
+  <section #scrollRef class="emoji-mart-scroll" [attr.aria-label]="_mergedI18n.emojilist">
     @for (category of displayedCategories(); track category.id) {
       <emoji-category
         [id]="category.id"
@@ -34,23 +42,23 @@
         [emojis]="category.emojis"
         [perLine]="perLine()"
         [totalFrequentLines]="totalFrequentLines()"
-        [hasStickyPosition]="isNative()"
-        [i18n]="mergedI18n()"
+        [hasStickyPosition]="_isNative"
+        [i18n]="_mergedI18n"
         [hideObsolete]="hideObsolete()"
         [notFoundEmoji]="notFoundEmoji()"
         [custom]="category.id === RECENT_CATEGORY.id ? (CUSTOM_CATEGORY.emojis ?? []) : []"
         [recent]="category.id === RECENT_CATEGORY.id ? recent() : undefined"
         [virtualize]="virtualize()"
         [virtualizeOffset]="virtualizeOffset()"
-        [emojiIsNative]="isNative()"
-        [emojiSkin]="currentSkin()"
+        [emojiIsNative]="_isNative"
+        [emojiSkin]="_currentSkin"
         [emojiSize]="emojiSize()"
-        [emojiSet]="set()"
-        [emojiSheetSize]="sheetSize()"
-        [emojiForceSize]="isNative()"
+        [emojiSet]="_set"
+        [emojiSheetSize]="_sheetSize"
+        [emojiForceSize]="_isNative"
         [emojiTooltip]="emojiTooltip()"
-        [emojiBackgroundImageFn]="backgroundImageFn()"
-        [emojiImageUrlFn]="imageUrlFn()"
+        [emojiBackgroundImageFn]="_backgroundImageFn"
+        [emojiImageUrlFn]="_imageUrlFn"
         [emojiUseButton]="useButton()"
         (emojiOver)="handleEmojiOver($event)"
         (emojiLeave)="handleEmojiLeave()"
@@ -64,14 +72,14 @@
         [title]="title()"
         [emoji]="previewEmoji()"
         [idleEmoji]="emoji()"
-        [emojiIsNative]="isNative()"
+        [emojiIsNative]="_isNative"
         [emojiSize]="38"
-        [emojiSkin]="currentSkin()"
-        [emojiSet]="set()"
-        [i18n]="mergedI18n()"
-        [emojiSheetSize]="sheetSize()"
-        [emojiBackgroundImageFn]="backgroundImageFn()"
-        [emojiImageUrlFn]="imageUrlFn()"
+        [emojiSkin]="_currentSkin"
+        [emojiSet]="_set"
+        [i18n]="_mergedI18n"
+        [emojiSheetSize]="_sheetSize"
+        [emojiBackgroundImageFn]="_backgroundImageFn"
+        [emojiImageUrlFn]="_imageUrlFn"
         (skinChange)="handleSkinChange($event)"
       ></emoji-preview>
     </div>

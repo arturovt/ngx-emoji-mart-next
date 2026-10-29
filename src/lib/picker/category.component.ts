@@ -22,17 +22,32 @@ import { CUSTOM_EMOJI_KEY_PREFIX, EmojiFrequentlyService } from './emoji-frequen
 @Component({
   selector: 'emoji-category',
   template: `
+    @let _i18n = i18n();
+    @let _id = id();
+    @let _noEmojiToDisplay = noEmojiToDisplay();
+    @let _emojiSize = emojiSize();
+    @let _emojiSkin = emojiSkin();
+    @let _emojiIsNative = emojiIsNative();
+    @let _emojiSet = emojiSet();
+    @let _emojiSheetSize = emojiSheetSize();
+    @let _emojiForceSize = emojiForceSize();
+    @let _emojiTooltip = emojiTooltip();
+    @let _emojiBackgroundImageFn = emojiBackgroundImageFn();
+    @let _emojiImageUrlFn = emojiImageUrlFn();
+    @let _hideObsolete = hideObsolete();
+    @let _emojiUseButton = emojiUseButton();
+
     <section
       #container
       class="emoji-mart-category"
-      [attr.aria-label]="i18n().categories[id()]"
-      [class.emoji-mart-no-results]="noEmojiToDisplay()"
+      [attr.aria-label]="_i18n.categories[_id]"
+      [class.emoji-mart-no-results]="_noEmojiToDisplay"
       [style]="containerStyles()"
     >
       <div class="emoji-mart-category-label" [style]="labelStyles()" [attr.data-name]="name()">
         <!-- already labeled by the section aria-label -->
         <span #label [style]="labelSpanStyles" aria-hidden="true">
-          {{ i18n().categories[id()] }}
+          {{ _i18n.categories[_id] }}
         </span>
       </div>
 
@@ -44,17 +59,17 @@ import { CUSTOM_EMOJI_KEY_PREFIX, EmojiFrequentlyService } from './emoji-frequen
                 @for (emoji of filteredEmojis; track emoji) {
                   <ngx-emoji
                     [emoji]="emoji"
-                    [size]="emojiSize()"
-                    [skin]="emojiSkin()"
-                    [isNative]="emojiIsNative()"
-                    [set]="emojiSet()"
-                    [sheetSize]="emojiSheetSize()"
-                    [forceSize]="emojiForceSize()"
-                    [tooltip]="emojiTooltip()"
-                    [backgroundImageFn]="emojiBackgroundImageFn()"
-                    [imageUrlFn]="emojiImageUrlFn()"
-                    [hideObsolete]="hideObsolete()"
-                    [useButton]="emojiUseButton()"
+                    [size]="_emojiSize"
+                    [skin]="_emojiSkin"
+                    [isNative]="_emojiIsNative"
+                    [set]="_emojiSet"
+                    [sheetSize]="_emojiSheetSize"
+                    [forceSize]="_emojiForceSize"
+                    [tooltip]="_emojiTooltip"
+                    [backgroundImageFn]="_emojiBackgroundImageFn"
+                    [imageUrlFn]="_emojiImageUrlFn"
+                    [hideObsolete]="_hideObsolete"
+                    [useButton]="_emojiUseButton"
                     (emojiOver)="emojiOver.emit($event)"
                     (emojiLeave)="emojiLeave.emit($event)"
                     (emojiClick)="emojiClick.emit($event)"
@@ -67,17 +82,17 @@ import { CUSTOM_EMOJI_KEY_PREFIX, EmojiFrequentlyService } from './emoji-frequen
           @for (emoji of emojisToDisplay(); track emoji) {
             <ngx-emoji
               [emoji]="emoji"
-              [size]="emojiSize()"
-              [skin]="emojiSkin()"
-              [isNative]="emojiIsNative()"
-              [set]="emojiSet()"
-              [sheetSize]="emojiSheetSize()"
-              [forceSize]="emojiForceSize()"
-              [tooltip]="emojiTooltip()"
-              [backgroundImageFn]="emojiBackgroundImageFn()"
-              [imageUrlFn]="emojiImageUrlFn()"
-              [hideObsolete]="hideObsolete()"
-              [useButton]="emojiUseButton()"
+              [size]="_emojiSize"
+              [skin]="_emojiSkin"
+              [isNative]="_emojiIsNative"
+              [set]="_emojiSet"
+              [sheetSize]="_emojiSheetSize"
+              [forceSize]="_emojiForceSize"
+              [tooltip]="_emojiTooltip"
+              [backgroundImageFn]="_emojiBackgroundImageFn"
+              [imageUrlFn]="_emojiImageUrlFn"
+              [hideObsolete]="_hideObsolete"
+              [useButton]="_emojiUseButton"
               (emojiOver)="emojiOver.emit($event)"
               (emojiLeave)="emojiLeave.emit($event)"
               (emojiClick)="emojiClick.emit($event)"
@@ -86,25 +101,25 @@ import { CUSTOM_EMOJI_KEY_PREFIX, EmojiFrequentlyService } from './emoji-frequen
         }
       </div>
 
-      @if (noEmojiToDisplay()) {
+      @if (_noEmojiToDisplay) {
         <div>
           <div>
             <ngx-emoji
               [emoji]="notFoundEmoji()"
               [size]="38"
-              [skin]="emojiSkin()"
-              [isNative]="emojiIsNative()"
-              [set]="emojiSet()"
-              [sheetSize]="emojiSheetSize()"
-              [forceSize]="emojiForceSize()"
-              [tooltip]="emojiTooltip()"
-              [backgroundImageFn]="emojiBackgroundImageFn()"
-              [useButton]="emojiUseButton()"
+              [skin]="_emojiSkin"
+              [isNative]="_emojiIsNative"
+              [set]="_emojiSet"
+              [sheetSize]="_emojiSheetSize"
+              [forceSize]="_emojiForceSize"
+              [tooltip]="_emojiTooltip"
+              [backgroundImageFn]="_emojiBackgroundImageFn"
+              [useButton]="_emojiUseButton"
             ></ngx-emoji>
           </div>
 
           <div class="emoji-mart-no-results-label">
-            {{ i18n().notfound }}
+            {{ _i18n.notfound }}
           </div>
         </div>
       }
