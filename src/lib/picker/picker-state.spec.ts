@@ -1,6 +1,6 @@
 import { Component, NgZone } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { EmojiService, categories } from 'ngx-emoji-mart-next/ngx-emoji';
+import { EmojiData, EmojiService, categories } from 'ngx-emoji-mart-next/ngx-emoji';
 
 import { PickerModule } from './picker.module';
 import * as icons from './svgs';
@@ -32,9 +32,6 @@ describe('PickerComponent state', () => {
     await timeout();
     await frame();
     fixture.detectChanges();
-    // Emoji data loads through a `resource()`. A real dynamic `import()` can take more than one
-    // tick, so wait for genuine stability rather than a fixed number of them.
-    await fixture.whenStable();
   }
 
   const one = (fixture: ComponentFixture<unknown>, selector: string) =>
@@ -243,9 +240,6 @@ describe('PickerComponent state', () => {
       input.value = 'thumbs';
       input.dispatchEvent(new Event('input'));
       fixture.detectChanges();
-      // The first search lazily loads the full search index, during which the icon shows a
-      // loading spinner (no `path`) instead of the search/delete icon.
-      await fixture.whenStable();
 
       // The `delete` icon was not provided so it comes from the defaults.
       expect(searchPath(fixture)).toBe(icons.search['delete']);
@@ -267,9 +261,6 @@ describe('PickerComponent state', () => {
       input.value = 'thumbs';
       input.dispatchEvent(new Event('input'));
       fixture.detectChanges();
-      // The first search lazily loads the full search index, during which the icon shows a
-      // loading spinner (no `path`) and the button stays disabled.
-      await fixture.whenStable();
 
       expect(iconPath()).toBe(icons.search['delete']);
       expect(button.disabled).toBe(false);
@@ -403,13 +394,11 @@ describe('PickerComponent state', () => {
 
       standard.dispatchEvent(new MouseEvent('mouseenter'));
       fixture.detectChanges();
-      await fixture.whenStable();
       expect(previewName(fixture)).toBe('Parrot');
 
       standard.dispatchEvent(new MouseEvent('mouseleave'));
       party.dispatchEvent(new MouseEvent('mouseenter'));
       fixture.detectChanges();
-      await fixture.whenStable();
       expect(previewName(fixture)).toBe('Party Parrot');
     });
 
@@ -482,9 +471,8 @@ describe('PickerComponent state', () => {
       expect(emoji).toBeDefined();
       emoji!.dispatchEvent(new MouseEvent('mouseenter'));
       fixture.detectChanges();
-      await settle(fixture);
 
-      const data = (await TestBed.inject(EmojiService).getData('smile', 1, 'apple'))!;
+      const data = TestBed.inject(EmojiService).getData('smile', 1, 'apple') as EmojiData;
       const text = (selector: string) =>
         all(fixture, `.emoji-mart-preview:not([hidden]) ${selector}`).map(e =>
           e.textContent!.trim(),

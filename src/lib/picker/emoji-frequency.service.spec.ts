@@ -29,8 +29,8 @@ describe('EmojiFrequently', () => {
     'should add emoji',
     inject(
       [EmojiFrequentlyService, EmojiService],
-      async (ef: EmojiFrequentlyService, es: EmojiService) => {
-        const pineapple = await es.getData('pineapple');
+      (ef: EmojiFrequentlyService, es: EmojiService) => {
+        const pineapple = es.getData('pineapple');
         ef.get(8, 4);
         ef.add(pineapple!);
         const result = ef.get(8, 4);

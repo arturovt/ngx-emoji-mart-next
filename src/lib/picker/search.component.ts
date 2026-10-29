@@ -31,7 +31,6 @@ let id = 0;
         type="search"
         [placeholder]="_i18n.search"
         [autofocus]="autoFocus()"
-        [disabled]="isLoading()"
         [(ngModel)]="query"
         (ngModelChange)="handleChange()"
       />
@@ -47,52 +46,18 @@ let id = 0;
         class="emoji-mart-search-icon"
         (click)="clear()"
         (keyup.enter)="clear()"
-        [disabled]="!isSearching() || isLoading()"
+        [disabled]="!isSearching()"
         [attr.aria-label]="_i18n.clear"
       >
-        @if (isLoading()) {
-          <!-- Search needs every category's data, loaded in full the first time it's used
-               (not progressively), so the one brief pause is clearly communicated here instead
-               of silently returning incomplete results. -->
-          <svg
-            class="emoji-mart-search-loading"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            width="13"
-            height="13"
-            opacity="0.5"
-          >
-            <circle
-              cx="10"
-              cy="10"
-              r="8"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-dasharray="32"
-              stroke-dashoffset="12"
-            >
-              <animateTransform
-                attributeName="transform"
-                type="rotate"
-                from="0 10 10"
-                to="360 10 10"
-                dur="0.8s"
-                repeatCount="indefinite"
-              />
-            </circle>
-          </svg>
-        } @else {
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            width="13"
-            height="13"
-            opacity="0.5"
-          >
-            <path [attr.d]="icon()" />
-          </svg>
-        }
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          width="13"
+          height="13"
+          opacity="0.5"
+        >
+          <path [attr.d]="icon()" />
+        </svg>
       </button>
     </div>
   `,
@@ -115,7 +80,6 @@ export class SearchComponent implements AfterViewInit, OnInit, OnDestroy {
   @Output() enterKey = new EventEmitter<KeyboardEvent>();
   @ViewChild('inputRef', { static: true }) private inputRef!: ElementRef<HTMLInputElement>;
   readonly isSearching = signal(false);
-  readonly isLoading = this.emojiSearch.isLoading;
   readonly icon = computed(() => (this.isSearching() ? this.icons().delete : this.icons().search));
   query = '';
   inputId = `emoji-mart-search-${++id}`;
@@ -142,16 +106,16 @@ export class SearchComponent implements AfterViewInit, OnInit, OnDestroy {
     this.inputRef.nativeElement.focus();
   }
 
-  async handleSearch(value: string) {
+  handleSearch(value: string) {
     this.isSearching.set(value !== '');
-    const emojis = (await this.emojiSearch.search(
+    const emojis = this.emojiSearch.search(
       this.query,
       this.emojisToShowFilter(),
       this.maxResults(),
       this.include(),
       this.exclude(),
       this.custom(),
-    )) as any[];
+    ) as any[];
     this.searchResults.emit(emojis);
   }
 

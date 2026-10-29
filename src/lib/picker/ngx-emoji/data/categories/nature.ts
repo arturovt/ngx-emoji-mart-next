@@ -3,7 +3,6 @@ export const emojis: { [unified: string]: CompressedEmojiData } = {
   '1F435': {
     name: 'Monkey Face',
     unified: '1F435',
-    emoticons: [':o)'],
     sheet: [11, 40],
     shortName: 'monkey_face'
   },

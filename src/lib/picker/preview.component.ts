@@ -7,7 +7,6 @@ import {
   computed,
   input,
   inject,
-  resource,
 } from '@angular/core';
 
 import { SkinComponent } from './skins.component';
@@ -24,7 +23,7 @@ import { SkinComponent } from './skins.component';
     @let _emojiBackgroundImageFn = emojiBackgroundImageFn();
     @let _emojiImageUrlFn = emojiImageUrlFn();
 
-    @if (_emoji && hasEmojiData()) {
+    @if (_emoji && _emojiData) {
       <div class="emoji-mart-preview">
         <div class="emoji-mart-preview-emoji">
           <ngx-emoji
@@ -105,42 +104,13 @@ export class PreviewComponent {
   readonly emojiBackgroundImageFn = input.required<Emoji['backgroundImageFn']>();
   readonly emojiImageUrlFn = input<Emoji['imageUrlFn']>();
   @Output() skinChange = new EventEmitter<Emoji['skin']>();
-
-  /**
-   * The hovered/selected emoji's base data (name, short names, emoticons) for the preview
-   * panel's text. Doesn't depend on skin/set — those only affect the `<ngx-emoji>` child's own
-   * rendering below, not this text — so changing skin tone never reloads this.
-   */
-  private readonly emojiResource = resource<EmojiData | null, Emoji['emoji'] | undefined>({
-    params: () => this.emoji() || undefined,
-    loader: async ({ params }) => {
-      const resolved = this.emojiService.resolveIndexEntry(params);
-      if (resolved) {
-        return this.emojiService.loadBaseData(resolved.unified);
-      }
-      if (typeof params === 'string') {
-        return null;
-      }
-      const custom = params as EmojiData;
-      custom.custom = true;
-      return custom;
-    },
-    // No `id` — see the matching comment in `EmojiComponent.baseData`.
-  });
-
   readonly emojiData = computed<Partial<EmojiData>>(() => {
-    if (this.emojiResource.status() === 'error') {
+    const emoji = this.emoji();
+    if (!emoji) {
       return {};
     }
-    return this.emojiResource.value() ?? {};
+    return this.emojiService.getData(emoji, this.emojiSkin(), this.emojiSet()) as EmojiData;
   });
-  /**
-   * Whether `emojiData` is genuinely resolved data, not just the `{}` default it falls back to
-   * while loading or on error. The template uses this (not a truthiness check on `emojiData`,
-   * which is always a truthy object) to keep the idle panel showing until the real data is
-   * ready, instead of briefly rendering the hover panel with blank fields.
-   */
-  readonly hasEmojiData = computed(() => !!this.emoji() && this.emojiResource.hasValue());
   readonly listedEmoticons = computed(() => {
     const knownEmoticons: string[] = [];
     const listedEmoticons: string[] = [];

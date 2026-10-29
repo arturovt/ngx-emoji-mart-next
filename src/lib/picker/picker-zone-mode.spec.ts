@@ -31,12 +31,10 @@ describe('PickerComponent in an application with zone.js', () => {
     app.attachView(component.hostView);
     app.tick();
 
-    // Let the picker finish the timers that it starts when it is created, and let every
-    // initially-rendered emoji's `resource()`-backed data load finish too.
+    // Let the picker finish the timers that it starts when it is created.
     await timeout();
     await frame();
     await timeout();
-    await app.whenStable();
 
     ticks = 0;
     app.injector.get(NgZone).onMicrotaskEmpty.subscribe(() => ticks++);
@@ -76,15 +74,9 @@ describe('PickerComponent in an application with zone.js', () => {
     expect(ticks).toBe(0);
   });
 
-  // Known problem. `PickerComponent.handleEmojiOver` writes the `previewEmoji` signal outside
-  // the Angular zone (by design, for performance — see the "should not enter the zone for the
-  // preview" test in picker-state.spec.ts), but Angular's scheduler still runs change detection
-  // for a signal write outside the zone. The same gap also makes `PreviewComponent`'s now
-  // `resource()`-backed data occasionally (rarely, only with real zone.js — not seen in zoneless
-  // or SSR e2e runs) miss a render after hovering, since the resource's own zone re-entry on
-  // resolution can race with this. Wrapping the write in `ngZone.run()` would fix both, but was
-  // rejected: it directly contradicts the "should not enter the zone for the preview" test's
-  // invariant, trading a confirmed, tested design decision for a rare e2e flake.
+  // Known problem. The picker updates the preview outside of the Angular zone with
+  // `ChangeDetectorRef.detectChanges()`. The `emoji` input of the preview is a signal now, and the
+  // scheduler of Angular runs change detection for a signal that changes outside of the zone.
   // Remove `.fails` when this is fixed.
   it.fails('should not run change detection when an emoji is hovered', async () => {
     await start('<emoji-mart></emoji-mart>');
@@ -105,7 +97,7 @@ describe('PickerComponent in an application with zone.js', () => {
     expect(ticks).toBe(0);
   });
 
-  it('should not report its first stable state until every rendered emoji has actually loaded, even with zone.js loaded', async () => {
+  it('should report its first stable state before the timer that backfills the trimmed category runs, even with zone.js loaded', async () => {
     @Component({ template: '<emoji-mart></emoji-mart>', imports: [PickerModule] })
     class HostComponent {}
 
@@ -120,14 +112,23 @@ describe('PickerComponent in an application with zone.js', () => {
     app.attachView(component.hostView);
     app.tick();
 
-    // Each rendered <ngx-emoji> loads its data through a `resource()`, which — unlike the bare
-    // `setTimeout` the picker separately uses to backfill a trimmed category for a fast first
-    // paint — is tracked by Angular's pending-task system. So `whenStable()` genuinely waits for
-    // every initially-rendered emoji's data, not just for the view's own synchronous structure.
+    // The category is trimmed to a smaller first batch right away, then grown back by a timer a
+    // moment later, purely so the browser gets a chance to paint the smaller batch first. Even
+    // though zone.js patches `setTimeout`, `whenStable()` here does not wait for that timer: it is
+    // driven by Angular's own pending-task tracking, not raw zone macrotask counting. This matters
+    // because code elsewhere in the app (or a future change) might reasonably assume `whenStable()`
+    // means "the view has fully settled" — this documents that it doesn't wait for this timer.
+    const emojiCount = () => host.querySelectorAll('ngx-emoji').length;
+    const countBeforeFirstStable = emojiCount();
+
     await app.whenStable();
 
-    const placeholders = host.querySelectorAll('.emoji-mart-emoji-loading');
-    expect(placeholders.length).toBe(0);
-    expect(host.querySelectorAll('.emoji-mart-emoji').length).toBeGreaterThan(0);
+    const countAtFirstStable = emojiCount();
+    expect(countAtFirstStable).toEqual(countBeforeFirstStable);
+
+    await timeout();
+    await frame();
+
+    expect(emojiCount()).toBeGreaterThan(countAtFirstStable);
   });
 });

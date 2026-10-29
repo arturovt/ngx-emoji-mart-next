@@ -51,11 +51,8 @@ describe('CategoryComponent', () => {
       element => element.getAttribute('aria-label') ?? '',
     );
 
-  it('should render the emojis', async () => {
+  it('should render the emojis', () => {
     const fixture = createCategory(['+1', 'grinning']);
-    await timeout();
-    await frame();
-    await fixture.whenStable();
 
     expect(labels(fixture).length).toBe(2);
     expect(labels(fixture)[0]).toContain('thumbsup');
@@ -64,11 +61,8 @@ describe('CategoryComponent', () => {
     expect(section(fixture).style.display).toBe('');
   });
 
-  it('should skip emojis that do not exist', async () => {
+  it('should skip emojis that do not exist', () => {
     const fixture = createCategory(['+1', 'not-an-emoji', null]);
-    await timeout();
-    await frame();
-    await fixture.whenStable();
 
     expect(labels(fixture).length).toBe(1);
   });
@@ -113,14 +107,11 @@ describe('CategoryComponent', () => {
     expect(section(fixture).classList.contains('emoji-mart-no-results')).toBe(false);
   });
 
-  it('should update when the `emojis` input changes', async () => {
+  it('should update when the `emojis` input changes', () => {
     const fixture = createCategory(['+1']);
 
     fixture.componentInstance.emojis.set(['grinning', 'joy']);
     fixture.detectChanges();
-    await timeout();
-    await frame();
-    await fixture.whenStable();
 
     expect(labels(fixture).length).toBe(2);
     expect(labels(fixture)[0]).toContain('grinning');
@@ -177,14 +168,11 @@ describe('CategoryComponent', () => {
     };
     const customOctocat = { ...customParrot, id: 'octocat', shortNames: ['octocat'] };
 
-    async function createRecent(recent: string[]) {
+    function createRecent(recent: string[]) {
       const fixture = TestBed.createComponent(RecentHostComponent);
       fixture.componentInstance.recent = recent;
       fixture.componentInstance.custom = [customParrot, customOctocat];
       fixture.detectChanges();
-      await timeout();
-      await frame();
-      await fixture.whenStable();
       return Array.from(
         fixture.nativeElement.querySelectorAll('.emoji-mart-emoji') as NodeListOf<HTMLElement>,
       ).map(element => ({
@@ -193,8 +181,8 @@ describe('CategoryComponent', () => {
       }));
     }
 
-    it('should tell a custom emoji from a standard emoji that has the same id', async () => {
-      const emojis = await createRecent(['custom:parrot', 'parrot']);
+    it('should tell a custom emoji from a standard emoji that has the same id', () => {
+      const emojis = createRecent(['custom:parrot', 'parrot']);
 
       expect(emojis.length).toBe(2);
       expect(emojis[0].custom).toBe(true);
@@ -203,16 +191,16 @@ describe('CategoryComponent', () => {
       expect(emojis[1].label).toContain('🦜');
     });
 
-    it('should find a custom emoji by its plain id when there is no standard emoji', async () => {
-      const emojis = await createRecent(['octocat', '+1']);
+    it('should find a custom emoji by its plain id when there is no standard emoji', () => {
+      const emojis = createRecent(['octocat', '+1']);
 
       expect(emojis.length).toBe(2);
       expect(emojis[0].custom).toBe(true);
       expect(emojis[1].label).toContain('thumbsup');
     });
 
-    it('should skip a custom emoji that does not exist', async () => {
-      expect((await createRecent(['custom:unknown', '+1'])).length).toBe(1);
+    it('should skip a custom emoji that does not exist', () => {
+      expect(createRecent(['custom:unknown', '+1']).length).toBe(1);
     });
   });
 

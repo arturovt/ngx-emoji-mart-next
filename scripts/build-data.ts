@@ -202,11 +202,23 @@ const smileysAndPeople = {
 categories.unshift(smileysAndPeople);
 categories.splice(1, 2);
 
+const sEmojis = stringifyObject(emojis, {
+  inlineCharacterLimit: 25,
+  indent: '  '
+});
+let doc = `import { CompressedEmojiData } from './data.interfaces';
+export const emojis: CompressedEmojiData[] = ${sEmojis};
+`;
+fs.writeFileSync(
+  path.join(__dirname, '../src/lib/picker/ngx-emoji/data/emojis.ts'),
+  doc
+);
+
 const sCategories = stringifyObject(categories, {
   inlineCharacterLimit: 25,
   indent: '  '
 });
-let doc = `import { EmojiCategory } from './data.interfaces';
+doc = `import { EmojiCategory } from './data.interfaces';
 export const categories: EmojiCategory[] = ${sCategories};
 `;
 fs.writeFileSync(
@@ -248,10 +260,7 @@ for (const category of categories) {
 const emojiIndex: { [unified: string]: any } = {};
 const emojiNameToUnified: { [name: string]: string } = {};
 const byCategory: { [categoryId: string]: { [unified: string]: any } } = {};
-// Keywords only (search-only, 29.5% of the original data) go in their own file. `emoticons`
-// stay in the category chunk below: they're tiny (0.1%) and, unlike keywords, are also shown
-// directly in the preview panel, not just used for search.
-const keywordsByUnified: { [unified: string]: string[] } = {};
+const keywordsByUnified: { [unified: string]: { keywords: string[]; emoticons: string[] } } = {};
 
 for (const category of categories) {
   byCategory[category.id] = {};
@@ -276,11 +285,11 @@ for (const datum of emojis) {
     emojiNameToUnified[name] = datum.unified;
   }
 
-  const { keywords, ...renderData } = datum;
+  const { keywords, emoticons, ...renderData } = datum;
   byCategory[categoryId][datum.unified] = renderData;
 
-  if (keywords && keywords.length) {
-    keywordsByUnified[datum.unified] = keywords;
+  if ((keywords && keywords.length) || (emoticons && emoticons.length)) {
+    keywordsByUnified[datum.unified] = { keywords: keywords || [], emoticons: emoticons || [] };
   }
 }
 
@@ -320,7 +329,7 @@ const sKeywords = stringifyObject(keywordsByUnified, {
   inlineCharacterLimit: 25,
   indent: '  '
 });
-doc = `export const emojiKeywords: { [unified: string]: string[] } = ${sKeywords};
+doc = `export const emojiKeywords: { [unified: string]: { keywords: string[]; emoticons: string[] } } = ${sKeywords};
 `;
 fs.writeFileSync(
   path.join(__dirname, '../src/lib/picker/ngx-emoji/data/emoji-keywords.ts'),
