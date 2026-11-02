@@ -202,23 +202,11 @@ const smileysAndPeople = {
 categories.unshift(smileysAndPeople);
 categories.splice(1, 2);
 
-const sEmojis = stringifyObject(emojis, {
-  inlineCharacterLimit: 25,
-  indent: '  '
-});
-let doc = `import { CompressedEmojiData } from './data.interfaces';
-export const emojis: CompressedEmojiData[] = ${sEmojis};
-`;
-fs.writeFileSync(
-  path.join(__dirname, '../src/lib/picker/ngx-emoji/data/emojis.ts'),
-  doc
-);
-
 const sCategories = stringifyObject(categories, {
   inlineCharacterLimit: 25,
   indent: '  '
 });
-doc = `import { EmojiCategory } from './data.interfaces';
+let doc = `import { EmojiCategory } from './data.interfaces';
 export const categories: EmojiCategory[] = ${sCategories};
 `;
 fs.writeFileSync(
@@ -238,18 +226,20 @@ fs.writeFileSync(
   doc
 );
 
-// Split `emojis` into three pieces so a consumer of a single emoji isn't forced to load
-// the whole dataset:
-//  - `emoji-index.ts`: always loaded, tiny. Maps every lookup key (unified code and every
-//    short name) to just enough to resolve and categorize an emoji.
-//  - `data/categories/<id>.ts`: one file per category, the full render data (minus search
-//    keywords/emoticons) for the emoji in that category. Loaded on demand.
-//  - `emoji-keywords.ts`: search-only keywords/emoticons, loaded only by the search feature.
+// We split `emojis` into three parts. This way, someone who only needs one emoji does not
+// have to load the whole dataset:
+//  - `emoji-index.ts`: a small file that we always load. It maps every lookup key (the
+//    unified code, and every short name) to just enough data to find and sort one emoji.
+//  - `data/categories/<id>.ts`: one file per category. It has the full data to render each
+//    emoji in that category, but not the search keywords or emoticons. We load this file
+//    only when we need it.
+//  - `emoji-keywords.ts`: the search keywords and emoticons. Only the search feature loads
+//    this file.
 //
-// Skin-tone modifier components (`datum.category === 'Component'`) aren't part of any
-// category's emoji list (see the `categories[categoryIndex].emojis.push` branch above), so
-// they're excluded here too; they're already captured separately in `skins.ts` for the
-// skin-swatch UI, which doesn't look them up through this index.
+// Skin-tone modifier parts (where `datum.category === 'Component'`) are not part of any
+// category's emoji list. See the `categories[categoryIndex].emojis.push` line above. So we
+// leave them out here too. `skins.ts` already has this data for the skin-swatch buttons. That
+// code does not use this index to find them.
 const unifiedToCategoryId: { [unified: string]: string } = {};
 for (const category of categories) {
   for (const unified of category.emojis || []) {
@@ -260,7 +250,11 @@ for (const category of categories) {
 const emojiIndex: { [unified: string]: any } = {};
 const emojiNameToUnified: { [name: string]: string } = {};
 const byCategory: { [categoryId: string]: { [unified: string]: any } } = {};
-const keywordsByUnified: { [unified: string]: { keywords: string[]; emoticons: string[] } } = {};
+// Keywords go in their own file. Search is the only feature that uses them, and they are
+// 29.5% of the original data. `emoticons` stay in the category file below instead. They are
+// tiny, only 0.1% of the data. Also, the preview panel shows emoticons directly. Search is
+// not the only feature that uses them.
+const keywordsByUnified: { [unified: string]: string[] } = {};
 
 for (const category of categories) {
   byCategory[category.id] = {};
@@ -285,11 +279,11 @@ for (const datum of emojis) {
     emojiNameToUnified[name] = datum.unified;
   }
 
-  const { keywords, emoticons, ...renderData } = datum;
+  const { keywords, ...renderData } = datum;
   byCategory[categoryId][datum.unified] = renderData;
 
-  if ((keywords && keywords.length) || (emoticons && emoticons.length)) {
-    keywordsByUnified[datum.unified] = { keywords: keywords || [], emoticons: emoticons || [] };
+  if (keywords && keywords.length) {
+    keywordsByUnified[datum.unified] = keywords;
   }
 }
 
@@ -329,7 +323,7 @@ const sKeywords = stringifyObject(keywordsByUnified, {
   inlineCharacterLimit: 25,
   indent: '  '
 });
-doc = `export const emojiKeywords: { [unified: string]: { keywords: string[]; emoticons: string[] } } = ${sKeywords};
+doc = `export const emojiKeywords: { [unified: string]: string[] } = ${sKeywords};
 `;
 fs.writeFileSync(
   path.join(__dirname, '../src/lib/picker/ngx-emoji/data/emoji-keywords.ts'),

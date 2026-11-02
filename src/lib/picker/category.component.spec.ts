@@ -51,8 +51,11 @@ describe('CategoryComponent', () => {
       element => element.getAttribute('aria-label') ?? '',
     );
 
-  it('should render the emojis', () => {
+  it('should render the emojis', async () => {
     const fixture = createCategory(['+1', 'grinning']);
+    await timeout();
+    await frame();
+    await fixture.whenStable();
 
     expect(labels(fixture).length).toBe(2);
     expect(labels(fixture)[0]).toContain('thumbsup');
@@ -61,8 +64,11 @@ describe('CategoryComponent', () => {
     expect(section(fixture).style.display).toBe('');
   });
 
-  it('should skip emojis that do not exist', () => {
+  it('should skip emojis that do not exist', async () => {
     const fixture = createCategory(['+1', 'not-an-emoji', null]);
+    await timeout();
+    await frame();
+    await fixture.whenStable();
 
     expect(labels(fixture).length).toBe(1);
   });
@@ -107,11 +113,14 @@ describe('CategoryComponent', () => {
     expect(section(fixture).classList.contains('emoji-mart-no-results')).toBe(false);
   });
 
-  it('should update when the `emojis` input changes', () => {
+  it('should update when the `emojis` input changes', async () => {
     const fixture = createCategory(['+1']);
 
     fixture.componentInstance.emojis.set(['grinning', 'joy']);
     fixture.detectChanges();
+    await timeout();
+    await frame();
+    await fixture.whenStable();
 
     expect(labels(fixture).length).toBe(2);
     expect(labels(fixture)[0]).toContain('grinning');
@@ -156,6 +165,7 @@ describe('CategoryComponent', () => {
       recent: string[] = [];
       custom: any[] = [];
       backgroundImageFn = () => '';
+      category = viewChild.required(CategoryComponent);
     }
 
     const customParrot = {
@@ -168,11 +178,14 @@ describe('CategoryComponent', () => {
     };
     const customOctocat = { ...customParrot, id: 'octocat', shortNames: ['octocat'] };
 
-    function createRecent(recent: string[]) {
+    async function createRecent(recent: string[]) {
       const fixture = TestBed.createComponent(RecentHostComponent);
       fixture.componentInstance.recent = recent;
       fixture.componentInstance.custom = [customParrot, customOctocat];
       fixture.detectChanges();
+      await timeout();
+      await frame();
+      await fixture.whenStable();
       return Array.from(
         fixture.nativeElement.querySelectorAll('.emoji-mart-emoji') as NodeListOf<HTMLElement>,
       ).map(element => ({
@@ -181,8 +194,8 @@ describe('CategoryComponent', () => {
       }));
     }
 
-    it('should tell a custom emoji from a standard emoji that has the same id', () => {
-      const emojis = createRecent(['custom:parrot', 'parrot']);
+    it('should tell a custom emoji from a standard emoji that has the same id', async () => {
+      const emojis = await createRecent(['custom:parrot', 'parrot']);
 
       expect(emojis.length).toBe(2);
       expect(emojis[0].custom).toBe(true);
@@ -191,16 +204,53 @@ describe('CategoryComponent', () => {
       expect(emojis[1].label).toContain('🦜');
     });
 
-    it('should find a custom emoji by its plain id when there is no standard emoji', () => {
-      const emojis = createRecent(['octocat', '+1']);
+    it('should find a custom emoji by its plain id when there is no standard emoji', async () => {
+      const emojis = await createRecent(['octocat', '+1']);
 
       expect(emojis.length).toBe(2);
       expect(emojis[0].custom).toBe(true);
       expect(emojis[1].label).toContain('thumbsup');
     });
 
-    it('should skip a custom emoji that does not exist', () => {
-      expect(createRecent(['custom:unknown', '+1']).length).toBe(1);
+    it('should skip a custom emoji that does not exist', async () => {
+      expect((await createRecent(['custom:unknown', '+1'])).length).toBe(1);
+    });
+
+    it('should show the real list once rendering has settled, with no spinner left', async () => {
+      const fixture = TestBed.createComponent(RecentHostComponent);
+      fixture.componentInstance.recent = ['+1'];
+      fixture.detectChanges();
+      await timeout();
+      await frame();
+      await fixture.whenStable();
+
+      expect(fixture.nativeElement.querySelector('.emoji-mart-category-loading')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.emoji-mart-emoji')).not.toBeNull();
+    });
+
+    it('should reserve one row of space for the default "Recent" list', async () => {
+      const fixture = TestBed.createComponent(RecentHostComponent);
+      fixture.componentInstance.recent = Array(9).fill('+1');
+      fixture.detectChanges();
+      await timeout();
+      await frame();
+      await fixture.whenStable();
+
+      // `recentLoadingHeight` does not care whether the spinner is still shown. It only
+      // depends on how many emoji there are, the line length, and the emoji size, so we can
+      // read it straight from the settled component.
+      expect(fixture.componentInstance.category().recentLoadingHeight()).toBe('36px');
+    });
+
+    it('should reserve two rows of space for a "Recent" list that needs two lines', async () => {
+      const fixture = TestBed.createComponent(RecentHostComponent);
+      fixture.componentInstance.recent = Array(18).fill('+1');
+      fixture.detectChanges();
+      await timeout();
+      await frame();
+      await fixture.whenStable();
+
+      expect(fixture.componentInstance.category().recentLoadingHeight()).toBe('72px');
     });
   });
 

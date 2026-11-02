@@ -10,7 +10,9 @@ import {
   OnInit,
   Output,
   SimpleChanges,
+  Injector,
   ViewChild,
+  afterNextRender,
   computed,
   input,
   linkedSignal,
@@ -36,6 +38,8 @@ import { CUSTOM_EMOJI_KEY_PREFIX, EmojiFrequentlyService } from './emoji-frequen
     @let _emojiImageUrlFn = emojiImageUrlFn();
     @let _hideObsolete = hideObsolete();
     @let _emojiUseButton = emojiUseButton();
+    @let _name = name();
+    @let _recentReady = recentReady();
 
     <section
       #container
@@ -51,7 +55,44 @@ import { CUSTOM_EMOJI_KEY_PREFIX, EmojiFrequentlyService } from './emoji-frequen
         </span>
       </div>
 
-      <div class="emoji-mart-results">
+      @if (_name === 'Recent' && !_recentReady) {
+        <!--
+          We read "Recent" from local storage, which only exists in the browser. The server
+          cannot read it. So we wait here, until the browser has painted once, before we show
+          anything. This way the server and the browser always start with the same picture. We
+          never have to swap one list of emoji for another right in front of the user.
+        -->
+        <div class="emoji-mart-category-loading" [style.min-height]="recentLoadingHeight()">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            width="16"
+            height="16"
+            opacity="0.5"
+          >
+            <circle
+              cx="10"
+              cy="10"
+              r="8"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-dasharray="32"
+              stroke-dashoffset="12"
+            >
+              <animateTransform
+                attributeName="transform"
+                type="rotate"
+                from="0 10 10"
+                to="360 10 10"
+                dur="0.8s"
+                repeatCount="indefinite"
+              />
+            </circle>
+          </svg>
+        </div>
+      } @else {
+      <div class="emoji-mart-results" [class.emoji-mart-results-reveal]="_name === 'Recent'">
         @if (virtualize()) {
           <div>
             @if (filteredEmojis(); as filteredEmojis) {
@@ -100,6 +141,7 @@ import { CUSTOM_EMOJI_KEY_PREFIX, EmojiFrequentlyService } from './emoji-frequen
           }
         }
       </div>
+      }
 
       @if (_noEmojiToDisplay) {
         <div>
@@ -133,6 +175,17 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
   ref = inject(ChangeDetectorRef);
   private emojiService = inject(EmojiService);
   private frequently = inject(EmojiFrequentlyService);
+
+  /**
+   * We compute the "Recent" list the same way on the server and in the browser (see
+   * `updateRecentEmojis`). But the server never has `localStorage`, so its list is only ever
+   * the built-in defaults. If the browser's `localStorage` holds something different, showing
+   * that real list right away would mean swapping it in right after the defaults, which looks
+   * like a flicker. So we keep the "Recent" row hidden, behind a spinner, until right after the
+   * first paint. By then we are always in the browser, so there is nothing left to swap.
+   */
+  readonly recentReady = signal(false);
+  private readonly injector = inject(Injector);
 
   readonly emojis = input<any[] | null>(null);
   /** The emojis that are shown. The picker and the recent category can change them. */
@@ -180,6 +233,16 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
     return { ...(display && { display }), ...(minHeight && { minHeight }) };
   });
   readonly labelStyles = computed(() => (this.hasStickyPosition() ? {} : { height: 28 }));
+  /**
+   * How tall the spinner should be, while we wait to show "Recent" (see `recentReady`). We
+   * already know how many emoji we will show (`emojisToDisplay` does not wait for
+   * `recentReady`). So we can save the right amount of space for them right away. This way nothing
+   * moves on screen once we swap the spinner for the real emoji.
+   */
+  readonly recentLoadingHeight = computed(() => {
+    const rows = Math.ceil((this.emojisToDisplay().length || this.perLine()) / this.perLine());
+    return `${rows * (this.emojiSize() + 12)}px`;
+  });
   /** The emojis that virtualized mode shows. Only set while the category is near the viewport. */
   readonly filteredEmojis = signal<any[] | null | undefined>(undefined);
   labelSpanStyles: any = {};
@@ -191,6 +254,14 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
 
   ngOnInit() {
     this.updateRecentEmojis();
+
+    // Only "Recent" needs this (see `recentReady`). We register it here, not in the
+    // constructor, so every other category skips it. A picker has many categories, each with
+    // its own `emoji-category`, and each registered hook adds one more thing Angular must
+    // settle after the first render.
+    if (this.name() === 'Recent') {
+      afterNextRender(() => this.recentReady.set(true), { injector: this.injector });
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -273,15 +344,17 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
       return;
     }
     this.displayedEmojis.set(
-      frequentlyUsed
-        .map(key => this.getRecentEmoji(key))
-        .filter(emoji => !!emoji && !!this.emojiService.getData(emoji)),
+      frequentlyUsed.map(key => this.getRecentEmoji(key)).filter(emoji => !!emoji),
     );
   }
 
   /**
    * A key is the id of a standard emoji, or `custom:` and the id of a custom emoji. The plain id of
    * a custom emoji also works when no standard emoji has this id.
+   *
+   * We check if a standard emoji exists using the index that is always loaded. We do not use
+   * `EmojiService.getData()` for this. This keeps the check synchronous. `getRecentEmoji` runs
+   * in `ngOnInit`, before any category file has had a chance to load.
    */
   private getRecentEmoji(key: string) {
     const findCustom = (id: string) => this.custom().find((emoji: any) => emoji.id === id);
@@ -289,7 +362,7 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
     if (key.startsWith(CUSTOM_EMOJI_KEY_PREFIX)) {
       return findCustom(key.slice(CUSTOM_EMOJI_KEY_PREFIX.length));
     }
-    return this.emojiService.getData(key) ? key : findCustom(key);
+    return this.emojiService.resolveIndexEntry(key) ? key : findCustom(key);
   }
 
   updateDisplay(display: 'none' | 'block') {
@@ -297,16 +370,38 @@ export class CategoryComponent implements OnChanges, OnInit, AfterViewInit {
     this.updateRecentEmojis();
   }
 
+  /**
+   * Decides which emojis to show. This also sets the category's size, before anything has
+   * rendered (see `ngAfterViewInit` and `memoizeSize`). We check if an emoji exists, and check
+   * `obsoletedBy`, using the index that is always loaded. We do not use
+   * `EmojiService.getData()`. This keeps the check synchronous. The category file for these
+   * emojis may not have loaded yet.
+   */
   private filterEmojis(): any[] {
     const newEmojis = [];
     for (const emoji of this.displayedEmojis() || []) {
       if (!emoji) {
         continue;
       }
-      const data = this.emojiService.getData(emoji);
-      if (!data || (data.obsoletedBy && this.hideObsolete()) || (!data.unified && !data.custom)) {
-        continue;
+
+      if (typeof emoji === 'string') {
+        const resolved = this.emojiService.resolveIndexEntry(emoji);
+        if (!resolved) {
+          continue;
+        }
+        if (resolved.entry.obsoletedBy && this.hideObsolete()) {
+          continue;
+        }
+      } else if (!emoji.custom) {
+        // This is not already marked as custom. It might share an id with a standard emoji.
+        // If so, it should behave like that standard emoji, the same way
+        // `EmojiService.resolveIndexEntry` itself would treat it.
+        const resolved = this.emojiService.resolveIndexEntry(emoji);
+        if (resolved?.entry.obsoletedBy && this.hideObsolete()) {
+          continue;
+        }
       }
+
       newEmojis.push(emoji);
     }
     return newEmojis;

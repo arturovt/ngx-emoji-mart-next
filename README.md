@@ -269,6 +269,27 @@ emojiFallback = (emoji: any, props: any) => (emoji ? `:${emoji.shortNames[0]}:` 
 <ngx-emoji set="twitter" emoji="shrug" size="24" [fallback]="emojiFallback"></ngx-emoji>
 ```
 
+## Async data loading
+
+We split the emoji dataset by category. We load each category only when it is needed, instead
+of loading the whole dataset at once. Before this change, rendering just one emoji cost the
+same as loading the entire dataset of about 1850 emoji.
+
+Now, a single `<ngx-emoji>` used on its own, without the full picker, only pays for its own
+category. The search feature's keywords are not loaded at all, unless search is actually used.
+
+This change is visible in a few ways:
+
+- `<ngx-emoji>` shows an empty placeholder, the same size as the emoji, for a short moment
+  while its category loads. Once a category has loaded once, anywhere on the page, loading it
+  again is almost instant. We cache and share that load.
+- `EmojiService.getData()`, `getSanitizedData()`, and `EmojiSearch.search()` are now `async`.
+  You must `await` them. Or, inside a component, you can use them with `resource()`, the same
+  way `EmojiComponent` itself does.
+- The first call to `EmojiSearch.search()` loads every category and all the search keywords at
+  once. Search cannot give useful partial results, so we load it all together. The picker's
+  search input shows a loading state while this happens.
+
 ## Custom emojis
 
 You can provide custom emojis which will show up in their own category. You can either use a single image as imageUrl or use a spritesheet as shown in the second object.
@@ -307,12 +328,19 @@ const customEmojis = [
 
 The `Picker` doesn’t have to be mounted for you to take advantage of the advanced search results.
 
+`EmojiSearch.search()` is async. The first call loads the full emoji dataset and search index.
+See [Async data loading](#async-data-loading) below. After that first call, later calls are
+fast.
+
 ```ts
 import { EmojiSearch } from 'ngx-emoji-mart-next';
 
 class ex {
-  constructor(private emojiSearch: EmojiSearch) {
-    this.emojiSearch.search('christmas').map(o => o.native);
+  constructor(private emojiSearch: EmojiSearch) {}
+
+  async find() {
+    const results = await this.emojiSearch.search('christmas');
+    return results?.map(o => o.native);
     // => [🎄, 🎅🏼, 🔔, 🎁, ⛄️, ❄️]
   }
 }

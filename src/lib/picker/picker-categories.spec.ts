@@ -22,10 +22,12 @@ describe('PickerComponent category data', () => {
 
   async function settle(fixture: ComponentFixture<unknown>) {
     // The picker draws the remaining categories in a `setTimeout` and measures them in an
-    // animation frame.
+    // animation frame. Each emoji then loads its data through a `resource()`, which needs its
+    // own wait, so we wait for the app to become stable too, not just for the timer and frame.
     await timeout();
     await frame();
     fixture.detectChanges();
+    await fixture.whenStable();
   }
 
   const snapshot = () =>

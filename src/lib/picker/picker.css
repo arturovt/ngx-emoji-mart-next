@@ -161,6 +161,22 @@
   background-color: rgba(255, 255, 255, .95);
 }
 
+.emoji-mart-category-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Fades "Recent" in the first time it replaces the spinner, so it does not just pop in. */
+.emoji-mart-results-reveal {
+  animation: emoji-mart-fade-in .15s ease-in;
+}
+
+@keyframes emoji-mart-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .emoji-mart-category-list {
   margin: 0;
   padding: 0;

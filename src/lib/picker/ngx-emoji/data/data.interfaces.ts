@@ -9,11 +9,15 @@ export interface EmojiCategory {
 }
 
 /**
- * The always-loaded lookup entry for one emoji, keyed by its unified code (see
- * `emojiIndex` in `emoji-index.ts`). Carries only what's needed to resolve an id and make
- * synchronous existence/filtering decisions, or render a native emoji at the default skin
- * tone, without loading that emoji's category chunk. Every short name also resolves to the
- * same unified code via `emojiNameToUnified`, so this doesn't need to be duplicated per name.
+ * One lookup entry for one emoji. We load this file right away, for every emoji. It is
+ * stored in `emojiIndex` (in `emoji-index.ts`), keyed by the emoji's unified code.
+ *
+ * This entry only has what we need to find an emoji by id, and to make quick decisions about
+ * it (like checking if it still exists, or if it should be filtered out). We do not need to
+ * load that emoji's category file just for this.
+ *
+ * A short name maps to the same unified code through `emojiNameToUnified`. So we do not need
+ * to repeat this entry once for every short name.
  */
 export interface EmojiIndexEntry {
   category: string;
