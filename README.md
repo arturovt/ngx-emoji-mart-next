@@ -283,12 +283,20 @@ This change is visible in a few ways:
 - `<ngx-emoji>` shows an empty placeholder, the same size as the emoji, for a short moment
   while its category loads. Once a category has loaded once, anywhere on the page, loading it
   again is almost instant. We cache and share that load.
+- A native emoji (`[isNative]="true"`) at the default skin tone never shows that placeholder at
+  all. It loads straight from the small, always-loaded index, with no category file needed. Only
+  a different skin tone needs the category file, for its `skinVariations` data.
 - `EmojiService.getData()`, `getSanitizedData()`, and `EmojiSearch.search()` are now `async`.
   You must `await` them. Or, inside a component, you can use them with `resource()`, the same
   way `EmojiComponent` itself does.
 - The first call to `EmojiSearch.search()` loads every category and all the search keywords at
   once. Search cannot give useful partial results, so we load it all together. The picker's
   search input shows a loading state while this happens.
+- The picker's "Recent" row reads from local storage, which only exists in the browser. The
+  server cannot read it, so it cannot render that row's real content. Instead of guessing, the
+  row shows a spinner, sized to match the real row exactly, until right after the browser's
+  first paint. This way nothing shifts on screen, and no list of emoji flashes and then gets
+  swapped for another, no matter how slow the network is.
 
 ## Custom emojis
 
