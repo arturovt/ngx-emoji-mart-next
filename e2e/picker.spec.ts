@@ -37,6 +37,25 @@ test.describe('Emoji picker', () => {
     );
   });
 
+  test('should not lose focus while typing the very first search, while it loads its data', async ({
+    page,
+  }) => {
+    // The first search ever made loads every category in the background. We type one key at a
+    // time here (not `.fill()`, which sets the whole value at once) because the bug this guards
+    // against only shows up between keystrokes: disabling the input while it has focus blurs it
+    // right away, so a naive loading state can kick the person out after their first letter.
+    const input = search(page);
+    await input.click();
+    await expect(input).toBeFocused();
+
+    for (const key of 'heart') {
+      await page.keyboard.type(key);
+      await expect(input).toBeFocused();
+    }
+
+    await expect(input).toHaveValue('heart');
+  });
+
   test('should update preview emoji when emoji is hovered', async ({ page }) => {
     await search(page).fill('thumbs up');
 

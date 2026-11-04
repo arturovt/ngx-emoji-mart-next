@@ -31,7 +31,6 @@ let id = 0;
         type="search"
         [placeholder]="_i18n.search"
         [autofocus]="autoFocus()"
-        [disabled]="isLoading()"
         [(ngModel)]="query"
         (ngModelChange)="handleChange()"
       />
