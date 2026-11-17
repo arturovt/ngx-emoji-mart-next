@@ -55,6 +55,34 @@ describe('PickerComponent', () => {
     await timeout();
     await frame();
   });
+
+  it('should keep a preview panel visible while the hovered emoji loads', async () => {
+    // An emoji listens for hover only once its category's data has loaded.
+    await timeout();
+    await frame();
+    await fixture.whenStable();
+
+    const picker = fixture.debugElement.query(By.directive(PickerComponent));
+    const emoji = fixture.nativeElement.querySelector(
+      'section.emoji-mart-category:not(.emoji-mart-no-results) .emoji-mart-emoji',
+    )!;
+    const visiblePanels = () =>
+      Array.from<HTMLElement>(fixture.nativeElement.querySelectorAll('.emoji-mart-preview')).filter(
+        panel => !panel.hidden,
+      );
+
+    emoji.dispatchEvent(new MouseEvent('mouseenter'));
+    fixture.detectChanges();
+
+    expect(picker.componentInstance.previewEmoji()).not.toBeNull();
+    // The hovered emoji's data has not loaded yet; the idle panel holds the bar's height.
+    expect(visiblePanels().length).toBe(1);
+
+    await fixture.whenStable();
+
+    expect(visiblePanels().length).toBe(1);
+    expect(visiblePanels()[0].querySelector('.emoji-mart-preview-name')).not.toBeNull();
+  });
 });
 
 describe('PickerComponent with real SSR and hydration', () => {

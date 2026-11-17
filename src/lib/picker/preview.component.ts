@@ -58,7 +58,7 @@ import { SkinComponent } from './skins.component';
       </div>
     }
 
-    <div class="emoji-mart-preview" [hidden]="_emoji">
+    <div class="emoji-mart-preview" [hidden]="hasEmojiData()">
       <div class="emoji-mart-preview-emoji">
         @if (_idleEmoji && _idleEmoji.length) {
           <ngx-emoji
